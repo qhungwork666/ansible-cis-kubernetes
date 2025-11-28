@@ -1,0 +1,23 @@
+- name: Kubelet serving cert approver (Option)
+  block:
+    - name: Render and Copy Kubelet Approver Manifest to Master
+      ansible.builtin.template:
+        src: kubelet-serving-cert-approver.yml.j2
+        dest: /tmp/kubelet-serving-cert-approver.yml
+        mode: '0644'
+
+    - name: Apply Kubelet Serving Cert Approver (kubectl)
+      ansible.builtin.shell: |
+        sudo kubectl apply -f /tmp/kubelet-serving-cert-approver.yml
+      register: kubectl_output
+      changed_when: "'created' in kubectl_output.stdout or 'configured' in kubectl_output.stdout or 'reconfigured' in kubectl_output.stdout"
+
+    - name: 🟢 Task kubelet approver completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS Kubelet serving cert approver (Option)"
+
+  rescue:
+    - name: 🔴 Task kubelet approver Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS kubelet approver. Failed setting on {{ inventory_hostname }}."
+

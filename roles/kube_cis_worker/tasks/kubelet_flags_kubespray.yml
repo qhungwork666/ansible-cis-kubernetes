@@ -1,0 +1,573 @@
+# 4.2.1 Ensure that the --anonymous-auth argument is set to false
+
+- name: 4.2.1 Ensure that the --anonymous-auth argument is set to false
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'authentication': {
+                    'anonymous': {
+                      'enabled': false
+                    }
+                  }
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure that the 'enabled' argument is set to false
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+
+    - name: 🟢 Task 4.2.1 completed status
+      ansible.builtin.debug:
+        msg: "✅ PASS: CIS 4.2.1 Ensure that the --anonymous-auth argument is set to false"
+
+  rescue:
+    - name: 🔴 Task 4.2.1 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.1 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.2 Ensure that the --authorization-mode argument is not set to AlwaysAllow
+
+- name: 4.2.2 Ensure that the --authorization-mode argument is not set to AlwaysAllow
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'authorization': {
+                    'mode': 'Webhook'
+                  }
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure that the mode argument is set to Webhook
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.2 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.2 Ensure that the --authorization-mode argument is not set to AlwaysAllow"
+
+  rescue:
+    - name: 🔴 Task 4.2.2 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.2 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.3 Ensure that the --client-ca-file argument        
+
+
+- name: 4.2.3 Ensure that the --client-ca-file argument 
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'authentication': {
+                    'x509': {
+                      'clientCAFile': kubelet_authentication_x509_clientCAFile_kubespray
+                    }
+                  }
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure CIS kubelet setting 
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.3 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.3 Ensure that the --client-ca-file argument "
+
+  rescue:
+    - name: 🔴 Task 4.2.3 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.3 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.4 Verify that if defined, readOnlyPort is set to 0
+
+- name: 4.2.4 Ensure that the readOnlyPort is set to 0
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'readOnlyPort': 0
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure CIS kubelet setting 
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.4 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.4 Ensure that the readOnlyPort is set to 0"
+
+  rescue:
+    - name: 🔴 Task 4.2.4 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.4 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.5 Ensure that the --streaming-connection-idle-timeout argument is not set to 0 
+
+- name: 4.2.5 Ensure that the --streaming-connection-idle-timeout argument is not set to 0  
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'streamingConnectionIdleTimeout': '5m'
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure CIS kubelet setting 
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.5 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.5 Ensure that the --streaming-connection-idle-timeout argument is not set to 0 "
+
+  rescue:
+    - name: 🔴 Task 4.2.5 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.5 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.6 Ensure that the --make-iptables-util-chains argument is set to true
+
+- name: 4.2.6 Ensure that the --make-iptables-util-chains argument is set to true 
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'makeIPTablesUtilChains': true
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure CIS kubelet setting 
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.6 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.6 Ensure that the --make-iptables-util-chains argument is set to true "
+
+  rescue:
+    - name: 🔴 Task 4.2.6 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.6 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.7 Ensure that the --hostname-override argument is not set
+
+- name: 4.2.7 Ensure that the --hostname-override argument is not set
+  block:
+    - name: Audit Check for --hostname-override in kubelet configuration file
+      ansible.builtin.replace:
+        path: "{{ kubelet_service_arg_kubespray }}"
+        regexp: '(\s*)--hostname-override=[^"\s]+'
+        replace: '\1' 
+
+    - name: 🟢 Task 4.2.7 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.7 Ensure that the --hostname-override argument is not set"
+
+  rescue:
+    - name: 🔴 Task 4.2.7 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.7 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+
+# 4.2.8 Ensure that the eventRecordQPS argument
+
+- name: 4.2.8 Ensure that the eventRecordQPS argument
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'eventRecordQPS': 5
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure CIS kubelet setting 
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.8 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.8 Ensure that the eventRecordQPS argument"
+
+  rescue:
+    - name: 🔴 Task 4.2.8 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.8 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.9 Ensure that the --tls-cert-file and --tls-private-key-file arguments
+
+- name: 4.2.9 Ensure that the --tls-cert-file and --tls-private-key-file arguments
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'tlsCertFile': '/var/lib/kubelet/pki/kubelet.crt',
+                  'tlsPrivateKeyFile': '/var/lib/kubelet/pki/kubelet.key'
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure CIS kubelet setting 
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.9 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.9 Ensure that the --tls-cert-file and --tls-private-key-file arguments"
+
+  rescue:
+    - name: 🔴 Task 4.2.9 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.9 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.10 Ensure that the --rotate-certificates argument is not set to false
+
+- name: 4.2.10 Ensure that the --rotate-certificates argument is not set to false
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'rotateCertificates': true
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure CIS kubelet setting 
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.10 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.10 Ensure that the --rotate-certificates argument is not set to false"
+
+  rescue:
+    - name: 🔴 Task 4.2.10 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.10 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.11 Verify that the RotateKubeletServerCertificate argument is set to true
+
+- name: 4.2.11 Verify that the RotateKubeletServerCertificate argument is set to true
+  block:
+    - name: Add $KUBELET_CERTIFICATE_ARGS in ExecStart
+      ansible.builtin.lineinfile:
+        path: "{{ kubelet_service_path_kubespray }}"
+        regexp: '^(ExecStart=/usr/local/bin/kubelet)\s*\\?\s*$'
+        line: '\1 $KUBELET_CERTIFICATE_ARGS \\'
+        backrefs: true
+        
+    - name: Add feature gate flag KUBELET_CERTIFICATE_ARGS in file .env
+      ansible.builtin.lineinfile:
+        path: "{{ kubelet_service_arg_kubespray }}"
+        regexp: '^KUBELET_CERTIFICATE_ARGS=.*'
+        line: "KUBELET_CERTIFICATE_ARGS=\"{{ kubelet_feature_gate_flag }}\""
+
+      # notify:
+      #   - Restart kubelet
+
+    - name: 🟢 Task 4.2.11 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.11 Verify that the RotateKubeletServerCertificate argument is set to true"
+
+  rescue:
+    - name: 🔴 Task 4.2.11 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.11 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+- name: 4.2.11+1 When use Kubelet serving cert approver (Option) - kubespray
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'serverTLSBootstrap': true,
+                  'tlsCertFile': omit,
+                  'tlsPrivateKeyFile': omit
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure CIS kubelet setting 
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.11+1 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.11+1 When use Kubelet serving cert approver (Option)"
+
+  rescue:
+    - name: 🔴 Task 4.2.11+1 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.11+1 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+  when:
+    - kubelet_approver | default(false) | bool
+
+# 4.2.12 Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers
+
+- name: 4.2.12 Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'tlsCipherSuites': kubelet_tls_ciphers_suites
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure CIS kubelet setting 
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.12 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.12 Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers"
+
+  rescue:
+    - name: 🔴 Task 4.2.12 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.12 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.13 Ensure that a limit is set on pod PIDs 
+# https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws_classic_architecture/4/html/cluster_administration/rosa-configuring-pid-limits
+# https://kubernetes.io/docs/concepts/policy/pid-limiting/
+
+- name: 4.2.13 Ensure that a limit is set on pod PIDs 
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'podPidsLimit': kubelet_pod_pid_limit
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure CIS kubelet setting 
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.13 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.13 Ensure that a limit is set on pod PIDs "
+
+  rescue:
+    - name: 🔴 Task 4.2.13 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.13 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.14 Ensure that the --seccomp-default parameter is set to true
+
+- name: 4.2.14 Ensure that the --seccomp-default parameter is set to true
+  block:
+    - name: Slurp Kubelet config file
+      ansible.builtin.slurp:
+        src: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: slurped_config
+
+    - name: Convert to dictionary and apply new value recursively
+      ansible.builtin.set_fact:
+        current_config: "{{ slurped_config.content | b64decode | from_yaml }}"
+        after_config: >
+          {{ 
+            (slurped_config.content | b64decode | from_yaml) 
+            | combine(
+                {
+                  'seccompDefault': true
+                }, 
+                recursive=True
+            ) 
+          }}
+
+    - name: Ensure CIS kubelet setting 
+      ansible.builtin.copy:
+        content: "{{ after_config | to_nice_yaml(indent=2) }}"
+        dest: "{{ kubelet_config_yaml_path_kubespray }}"
+      register: config_change
+    - name: 🟢 Task 4.2.14 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.14 Ensure that the --seccomp-default parameter is set to true"
+
+  rescue:
+    - name: 🔴 Task 4.2.14 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.14 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 4.2.15 Ensure that the --IPAddressDeny is set to any
+
+- name: 4.2.15 Ensure that the --IPAddressDeny is set to any
+  block:
+
+    - name: Insert systemd hardening access into kubelet.service
+      ansible.builtin.blockinfile:
+        path: "{{ kubelet_service_path_kubespray }}"
+        marker: "# {mark} ANSIBLE KUBELET NETWORK"
+        insertafter: '^\[Service\]'
+        block: |
+          IPAddressDeny=any
+          IPAddressAllow={{ kubelet_allow_ips | join(' ') }}
+
+      # notify:
+      #   - Restart kubelet
+
+    - name: 🟢 Task 4.2.15 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.2.15 Ensure that the --IPAddressDeny is set to any"
+
+  rescue:
+    - name: 🔴 Task 4.2.15 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.2.15 Failed setting on {{ inventory_hostname }}. Execution stopped."

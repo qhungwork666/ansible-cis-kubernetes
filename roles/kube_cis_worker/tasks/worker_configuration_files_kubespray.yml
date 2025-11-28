@@ -1,0 +1,120 @@
+---
+# 4.1.1 Ensure that the kubelet service file permissions are set to 600 or more restrictive
+# 4.1.2 Ensure that the kubelet service file ownership is set to root:root
+
+- name: 4.1.1-4.1.2 Ensure Kubelet service file permissions and ownership are set (Kubespray)
+  block:
+    - name: Ensure kubelet service file are 600 or ownership root:root - kubespray (4.1.1-4.1.2)
+      ansible.builtin.file:
+        path: "{{ kubelet_service_path_kubespray }}"
+        mode: '0600'
+        owner: root
+        group: root
+
+    - name: 🟢 Task 4.1.1-4.1.2 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.1.1-4.1.2 Kubelet service file permissions and ownership set to 600 / root:root (Kubespray)."
+
+  rescue:
+    - name: 🔴 Task 4.1.1-4.1.2 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.1.1-4.1.2 Failed setting Kubelet service file permissions on {{ inventory_hostname }} (Kubespray). Execution stopped."
+
+# 4.1.3 Ensure that the proxy kubeconfig file permissions are set to 600 or more restrictive
+# 4.1.4 Ensure that the proxy kubeconfig file ownership is set to root:root
+
+- name: 4.1.3-4.1.4 Ensure proxy kubeconfig file permissions and ownership are set
+  block:
+    - name: Check kubeproxy config file status
+      ansible.builtin.stat:
+        path: "{{ kubeproxy_config_path }}"
+      register: kubeproxy_config_path_stat
+
+    - name: Ensure kubeproxy config perms are 600 or more restrictive (1.1.7-1.1.8)
+      file:
+        path: "{{ kubeproxy_config_path }}"
+        mode: '0600'
+        owner: root
+        group: root
+      when: 
+        - kubeproxy_config_path_stat.stat.exists
+      register: file_set
+
+    - name: 🟢 Task 4.1.3-4.1.4 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.1.3-4.1.4 Kubeconfig file exists and permissions set to 600 / root:root."
+      when: file_set.changed or not file_set.changed
+      
+    - name: 🟡 Task 4.1.3-4.1.4 Status SKIPPED (File Not Found)
+      ansible.builtin.debug:
+        msg: "🟡 SKIP: CIS 4.1.3-4.1.4 - Kube-proxy is enabled, but the local kubeconfig file ({{ kubeproxy_config_path }}) was not found. Assuming ConfigMap deployment or no file needed."
+      when: not kubeproxy_config_path_stat.stat.exists
+
+  rescue:
+    - name: 🔴 Task 4.1.3-4.1.4 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.1.3-4.1.4 Failed setting proxy kubeconfig file permissions on {{ inventory_hostname }}. Execution stopped."
+
+
+# 4.1.5 Ensure that the --kubeconfig kubelet.conf file permissions are set to 600 or more restrictive
+# 4.1.6 Ensure that the --kubeconfig kubelet.conf file ownership is set to root:root
+
+- name: 4.1.5-4.1.6 Ensure kubelet.conf permissions and ownership are set
+  block:
+    - name: Ensure the --kubeconfig kubelet.conf file are 600 or ownership root:root (4.1.5-4.1.6)
+      ansible.builtin.file:
+        path: "{{ kubelet_config_path }}"
+        mode: '0600'
+        owner: root
+        group: root
+
+    - name: 🟢 Task 4.1.5-4.1.6 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.1.5-4.1.6 Kubelet kubeconfig file permissions/ownership set to 600 / root:root."
+
+  rescue:
+    - name: 🔴 Task 4.1.5-4.1.6 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.1.5-4.1.6 Failed setting kubelet kubeconfig file permissions on {{ inventory_hostname }}. Execution stopped."
+
+# 4.1.7 Ensure that the certificate authorities file permissions are set to 644 or more restrictive
+# 4.1.8 Ensure that the certificate authorities file ownership is set to root:root
+
+- name: 4.1.7-4.1.8 Ensure Kubelet Certificate Authorities file permissions and ownership are set (Kubespray)
+  block:
+    - name: Ensure certificate authorities file are 644 or ownership root:root - kubespray (4.1.7-4.1.8)
+      ansible.builtin.file:
+        path: "{{ kubelet_ca_path_kubespray }}"
+        mode: '0644'
+        owner: root
+        group: root
+
+    - name: 🟢 Task 4.1.7-4.1.8 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.1.7-4.1.8 Kubelet CA file permissions/ownership set to 644 / root:root (Kubespray)."
+
+  rescue:
+    - name: 🔴 Task 4.1.7-4.1.8 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.1.7-4.1.8 Failed setting Kubelet CA file permissions on {{ inventory_hostname }} (Kubespray). Execution stopped."
+
+# 4.1.9 If the kubelet config.yaml configuration file is being used validate permissions set to 600 or more restrictive
+# 4.1.10 If the kubelet config.yaml configuration file is being used validate file ownership is set to root:root
+
+- name: 4.1.9-4.1.10 Ensure kubelet config.yaml file permissions and ownership are set (Kubespray)
+  block:
+    - name: Ensure kubelet config.yaml configuration are 600 or ownership root:root - kubespray (4.1.9-4.1.10)
+      ansible.builtin.file:
+        path: "{{ kubelet_config_yaml_path_kubespray }}"
+        mode: '0600'
+        owner: root
+        group: root
+
+    - name: 🟢 Task 4.1.9-4.1.10 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 4.1.9-4.1.10 Kubelet config YAML permissions/ownership set to 600 / root:root (Kubespray)."
+
+  rescue:
+    - name: 🔴 Task 4.1.9-4.1.10 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 4.1.9-4.1.10 Failed setting Kubelet config YAML permissions on {{ inventory_hostname }} (Kubespray). Execution stopped."

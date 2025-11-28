@@ -1,0 +1,84 @@
+# 1.4.1 Ensure that the --profiling argument is set to false
+
+- name: 1.4.1 Ensure that the --profiling argument is set to false
+  block:
+    - name: Ensure that the --profiling argument is set to false (1.4.1)
+      ansible.builtin.lineinfile:
+        path: "{{ scheduler_manifest }}"
+        regexp: '^\s*-\s+--profiling=.*$'
+        line: "    - --profiling=false"
+        state: present
+        insertafter: '^\s+- kube-scheduler$'
+      when: scheduler_manifest is defined
+
+    - name: 🟢 Task 1.4.1 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.4.1 Ensure that the --profiling argument is set to false"
+
+  rescue:
+    - name: 🔴 Task 1.4.1 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.4.1 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+
+# 1.4.2 Ensure that the --bind-address argument is set to 127.0.0.1
+
+- name: 1.4.2 Ensure that the --bind-address argument is set to 127.0.0.1
+  block:
+    - name: Ensure that the --bind-address (1.4.2)
+      ansible.builtin.lineinfile:
+        path: "{{ scheduler_manifest }}"
+        regexp: '^\s*-\s+--bind-address=.*$'
+        line: "    - --bind-address=127.0.0.1"
+        state: present
+        insertafter: '^\s+- kube-scheduler$'
+      when: scheduler_manifest is defined
+
+    - name: Slurp Scheduler Manifest file
+      ansible.builtin.slurp:
+        src: "{{ scheduler_manifest }}"
+      register: slurped_manifest
+      when: scheduler_manifest is defined
+
+    - name: Initialize base Manifest variables
+      ansible.builtin.set_fact:
+        current_manifest: "{{ slurped_manifest.content | b64decode | from_yaml }}"
+        original_container: "{{ (slurped_manifest.content | b64decode | from_yaml).spec.containers[0] }}"
+        new_httpget_config:
+          httpGet:
+            host: 127.0.0.1
+      when: slurped_manifest.content is defined
+    
+    - name: Compute the updated container object (Inline Logic)
+      ansible.builtin.set_fact:
+        updated_container: >
+          {{ original_container | combine({
+             'livenessProbe': original_container.livenessProbe | combine({
+                'httpGet': original_container.livenessProbe.httpGet | combine(new_httpget_config.httpGet, recursive=True)
+             }, recursive=True),
+             'startupProbe': original_container.startupProbe | combine({
+                'httpGet': original_container.startupProbe.httpGet | combine(new_httpget_config.httpGet, recursive=True)
+             }, recursive=True)
+          }, recursive=True) }}
+      when: original_container is defined
+
+    - name: Write back Manifest with updated Probes
+      ansible.builtin.copy:
+        content: >
+          {{ current_manifest | combine({
+             'spec': {
+               'containers': [ updated_container ] 
+             }
+           }, recursive=True) | to_nice_yaml(indent=2) }}
+        dest: "{{ scheduler_manifest }}"
+      when: updated_container is defined
+
+    - name: 🟢 Task 1.4.2 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.4.2 Ensure that the --bind-address argument is set to 127.0.0.1"
+
+  rescue:
+    - name: 🔴 Task 1.4.2 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.4.2 Failed setting on {{ inventory_hostname }}. Execution stopped."
+

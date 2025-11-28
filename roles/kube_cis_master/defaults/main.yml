@@ -1,0 +1,68 @@
+---
+# backup
+backup_base_dir: /backup
+timestamp_suffix: "{{ ansible_date_time.iso8601_basic_short | replace('T', '@') | replace('+', '-') | regex_replace('\\d{4}$', '') | regex_replace('\\d{2}$', '~') }}"
+backup_target_dir: "{{ backup_base_dir }}/kubernetes{{ timestamp_suffix }}"
+
+# paths (override in group_vars if needed)
+k8s_manifests_dir: /etc/kubernetes/manifests
+apiserver_manifest: "{{ k8s_manifests_dir }}/kube-apiserver.yaml"
+controller_manager_manifest: "{{ k8s_manifests_dir }}/kube-controller-manager.yaml"
+scheduler_manifest: "{{ k8s_manifests_dir }}/kube-scheduler.yaml"
+
+cni_file: "/etc/cni/net.d"
+
+kubernetes_pki_dir: /etc/kubernetes/pki
+ca_path: "{{ kubernetes_pki_dir }}/ca.crt"
+
+admin_conf: /etc/kubernetes/admin.conf
+scheduler_conf: /etc/kubernetes/scheduler.conf
+controller_manager_conf: /etc/kubernetes/controller-manager.conf
+
+audit_policy_src: files/audit-policy.yaml
+audit_policy_dest: /etc/kubernetes/audit-policy.yaml
+
+kube_apiserver_volumes:
+  - name: cis-config
+    path: /etc/kubernetes/cis-config
+  - name: k8s-cert-pki
+    path: /etc/kubernetes/pki
+
+# kube-apiserver
+encrypt_secrets: "RW5jcnlwdGluZy1kYXRhLWV0Y2QhQCMxMjM0NTY3ODk="
+
+authorization_mode:
+  - Node
+  - RBAC
+
+admission_plugins:
+  - AlwaysPullImages
+  - DenyServiceExternalIPs
+  - EventRateLimit
+  - NodeRestriction
+
+cis_config_dir: "/etc/kubernetes/cis-config"
+
+audit_log_path: "/var/log/kubernetes/audit.log"
+audit_log_maxage: 30
+audit_log_maxbackup: 10
+audit_log_maxsize: 100
+
+kubelet_ca_path: "{{ kubernetes_pki_dir }}/ca.crt"
+kubelet_client_certificate_path: "{{ kubernetes_pki_dir }}/apiserver-kubelet-client.crt"
+kubelet_client_key_path: "{{ kubernetes_pki_dir }}/apiserver-kubelet-client.key"
+
+service_account_key_path: "{{ kubernetes_pki_dir }}/sa.pub"
+
+apiserver_cert_path: "{{ kubernetes_pki_dir }}/apiserver.crt"
+apiserver_key_path: "{{ kubernetes_pki_dir }}/apiserver.key"
+
+
+tls_cipher_suites: "TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256"
+
+# Controller Manager
+garbage_collector_terminated: 555
+service_account_private_key_file: "{{ kubernetes_pki_dir }}/sa.key"
+
+# kubespray enable set true, disable set false
+kubespray: false

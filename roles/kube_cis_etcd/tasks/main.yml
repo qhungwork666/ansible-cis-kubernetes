@@ -1,0 +1,9 @@
+
+# Files & ownership controls (1.1.7-1.1.8)
+- name: Include master files permissions tasks
+  include_tasks: etcd_permissions.yml
+
+# etcd flags & config checks (2.*)
+- name: Include etcd flags tasks
+  include_tasks: etcd_tls_flags.yml
+  when: not (kubespray | default(false) | bool)

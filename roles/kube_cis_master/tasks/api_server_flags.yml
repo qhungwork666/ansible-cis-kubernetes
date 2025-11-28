@@ -1,0 +1,674 @@
+---
+- name: Read kube-apiserver manifest (if exists) for flag inspection
+  slurp:
+    src: "{{ apiserver_manifest }}"
+  register: apiserver_manifest_raw
+
+- name: Decode apiserver manifest content (fact)
+  set_fact:
+    apiserver_manifest_text: "{{ apiserver_manifest_raw.content | b64decode }}"
+  when: apiserver_manifest_raw is defined and apiserver_manifest_raw.content is defined
+
+- name: Ensure CIS admission config directory exists
+  ansible.builtin.file:
+    path: "{{ cis_config_dir }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+    
+# 1.2.1 Ensure --anonymous-auth is set to false (Manual in doc), but 1.2.1 in some versions is Manual.
+# Bug check https://github.com/kubernetes-sigs/kubespray/issues/6242 and https://github.com/kubernetes/kubernetes/issues/100581 and https://github.com/kubernetes/kubernetes/issues/43784
+
+# - name: 1.2.1 Ensure --anonymous-auth is set to false
+#   block:
+#     - name: Configure --anonymous-auth=false (1.2.21)
+#       ansible.builtin.lineinfile:
+#         path: "{{ apiserver_manifest }}"
+#         state: present
+#         regexp: '^\s*-\s*--anonymous-auth=.*$'
+#         line: '    - --anonymous-auth=false'
+#         insertafter: '^\s*-\s+--advertise-address=.*$'
+
+#     - name: 🟢 Task 1.2.1 completed status
+#       ansible.builtin.debug:
+#         msg: "✅ CIS 1.2.1  --anonymous-auth present and false."
+#   rescue:
+#     - name: 🔴 Task 1.2.1 Status FAIL
+#       ansible.builtin.debug:
+#         msg: "🛑 FAIL: CIS 1.2.1 Failed to set --anonymous-auth on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.2 Ensure that the --token-auth-file parameter is not set
+
+- name: 1.2.2 Ensure that the --token-auth-file parameter is not set
+  block:
+    - name: Check if --token-auth-file is present in apiserver manifest (1.2.2)
+      ansible.builtin.set_fact:
+        token_auth_file_present: "{{ apiserver_manifest_text | default('') is search('--token-auth-file') }}"
+      when: apiserver_manifest_text is defined
+
+    - name: Remove --token-auth-file if present (1.2.2)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        regexp: '(^\\s*- --token-auth-file=.*$)'
+        state: absent
+      when: token_auth_file_present | default(false)
+
+    - name: 🟢 Task 1.2.2 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.2 --token-auth-file parameter is not set."
+
+  rescue:
+    - name: 🔴 Task 1.2.2 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.2 Failed to remove --token-auth-file on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.3 Ensure that the DenyServiceExternalIPs is set 
+# 1.2.9 Ensure that the admission control plugin EventRateLimit is set 
+# 1.2.10 Ensure that the admission control plugin AlwaysAdmit is not set
+# 1.2.11 Ensure that the admission control plugin AlwaysPullImages is set
+# 1.2.14 Ensure that the admission control plugin NodeRestriction is set
+
+- name: Ensure --enable-admission-plugins is set and not set (1.2.3-1.2.9-1.2.10-1.2.11-1.2.14)
+  block:
+    - name: Ensure --enable-admission-plugins contains only required plugins (Strict Enforcement) (1.2.3-1.2.9-1.2.10-1.2.11-1.2.14)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        regexp: '^\s*-\s+--enable-admission-plugins=.*$'
+        line: "    - --enable-admission-plugins={{ admission_plugins | join(',') }}"
+        state: present   
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: apiserver_manifest is defined
+    - name: Deploy Admission Configuration File (includes EventRateLimit config) (1.2.9)
+      ansible.builtin.copy:
+        src: admission-configuration.yml
+        dest: "{{ cis_config_dir }}/admission-configuration.yml"
+        owner: root
+        group: root
+        mode: '0644'
+    - name: Add --admission-control-config-file flag to API Server (1.2.9)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        regexp: '^\s*-\s+--admission-control-config-file=.*$'
+        line: '    - --admission-control-config-file={{ cis_config_dir }}/admission-configuration.yml'
+        state: present
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+
+- name: 1.2.3-1.2.14 Harden API Server Admission Plugins and Configuration
+  block:
+    # 1. Configure --enable-admission-plugins (Covers 1.2.3, 1.2.10, 1.2.11, 1.2.14)
+    # Assumes 'admission_plugins' variable contains the required list (e.g., NodeRestriction, DenyServiceExternalIPs, EventRateLimit, AlwaysPullImages, etc.)
+    - name: Ensure --enable-admission-plugins contains only required plugins (Strict Enforcement)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        regexp: '^\s*-\s+--enable-admission-plugins=.*$'
+        line: "    - --enable-admission-plugins={{ admission_plugins | join(',') }}"
+        state: present   
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: apiserver_manifest is defined
+
+    # 2. Deploy Admission Configuration File (Required for EventRateLimit - 1.2.9)
+    - name: Deploy Admission Configuration File (includes EventRateLimit config)
+      ansible.builtin.copy:
+        src: admission-configuration.yml
+        dest: "{{ cis_config_dir }}/admission-configuration.yml"
+        owner: root
+        group: root
+        mode: '0644'
+
+    # 3. Add --admission-control-config-file flag to API Server (1.2.9)
+    - name: Add --admission-control-config-file flag to API Server
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        regexp: '^\s*-\s+--admission-control-config-file=.*$'
+        line: '    - --admission-control-config-file={{ cis_config_dir }}/admission-configuration.yml'
+        state: present
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+
+    - name: 🟢 Task 1.2.3-1.2.14 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.3, 1.2.9, 1.2.10, 1.2.11, 1.2.14 Admission Plugins and Config set."
+
+  rescue:
+    - name: 🔴 Task 1.2.3-1.2.14 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.3-1.2.14 Failed setting Admission Control flags on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.4 Ensure that the --kubelet-client-certificate and --kubelet- client-key arguments are set as appropriate
+
+- name: 1.2.4 Ensure that the --kubelet-client-certificate and --kubelet-client-key
+  block:    
+    - name: 1.2.4 [Update/Replace] --kubelet-client-certificate argument
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s+--kubelet-client-certificate=.*$'
+        line: '    - --kubelet-client-certificate={{ kubelet_client_certificate_path }}'
+        backrefs: true
+      register: client_cert_update
+    - name: 1.2.4 [Insert] --kubelet-client-certificate if not present
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        line: '    - --kubelet-client-certificate={{ kubelet_client_certificate_path }}'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: not client_cert_update.changed
+
+    - name: 1.2.4 [Update/Replace] --kubelet-client-key argument
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s+--kubelet-client-key=.*$'
+        line: '    - --kubelet-client-key={{ kubelet_client_key_path }}'
+        backrefs: true
+      register: client_key_update
+    - name: 1.2.4 [Insert] --kubelet-client-key if not present
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        line: '    - --kubelet-client-key={{ kubelet_client_key_path }}'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: not client_key_update.changed
+
+    - name: 🟢 Task 1.2.4 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.4 --kubelet-client-certificate and --kubelet-client-key flags are set."
+
+  rescue:
+    - name: 🔴 Task 1.2.4 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.4 Failed setting kubelet client certificate flags on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.5 Ensure that the --kubelet-certificate-authority argument is set as appropriate
+
+- name: 1.2.5 Ensure that the --kubelet-certificate-authority is set correctly
+  block:
+    - name: Configure --kubelet-certificate-authority (1.2.5)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--kubelet-certificate-authority=.*$'
+        line: '    - --kubelet-certificate-authority={{ ca_path }}'
+        insertafter: '^\s*-\s+--kubelet-client-key=.*$'
+      when: apiserver_manifest is defined
+
+    - name: 🟢 Task 1.2.5 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.5 --kubelet-certificate-authority flag is set."
+
+  rescue:
+    - name: 🔴 Task 1.2.5 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.5 Failed setting kubelet CA flag on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.6 Ensure that the --authorization-mode argument is not set to AlwaysAllow
+# 1.2.7 Ensure that the --authorization-mode argument includes Node
+# 1.2.8 Ensure that the --authorization-mode argument includes RBAC
+
+- name: 1.2.6-1.2.8 Ensure that the --authorization-mode includes Node and RBAC
+  block:
+    - name: Configure --authorization-mode (1.2.6-1.2.7-1.2.8)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        regexp: '^\s*-\s+--authorization-mode=.*$'
+        line: "    - --authorization-mode={{ authorization_mode | join(',') }}"
+        state: present
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: apiserver_manifest is defined
+
+    - name: 🟢 Task 1.2.6-1.2.8 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.6-1.2.8 --authorization-mode is correctly configured (Node and RBAC enabled)."
+
+  rescue:
+    - name: 🔴 Task 1.2.6-1.2.8 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.6-1.2.8 Failed setting authorization mode flag on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.12 Ensure that the admission control plugin ServiceAccount is set
+# 1.2.13 Ensure that the admission control plugin NamespaceLifecycle is set
+
+- name: 1.2.12-1.2.13 Ensure ServiceAccount and NamespaceLifecycle are not disabled
+  block:
+    - name: Decode manifest content and check for --disable-admission-plugins (1.2.12-1.2.13)
+      ansible.builtin.set_fact:
+        has_disable_admission_plugins: "{{ (apiserver_manifest_raw.content | b64decode) is search('--disable-admission-plugins') }}"
+      when: apiserver_manifest_raw is defined and apiserver_manifest_raw.content is defined
+
+    - name: Remove --disable-admission-plugins if present (1.2.12-1.2.13)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        regexp: '^\s*-\s*--disable-admission-plugins=.*$'
+        state: absent
+        backrefs: no
+      when: has_disable_admission_plugins | default(false)
+
+    - name: 🟢 Task 1.2.12-1.2.13 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.12-1.2.13 --disable-admission-plugins flag successfully removed (or was absent)."
+
+  rescue:
+    - name: 🔴 Task 1.2.12-1.2.13 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.12-1.2.13 Failed to check or remove --disable-admission-plugins on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.15 Ensure that the --profiling argument is set to false
+
+- name: 1.2.15 Ensure that the --profiling argument is set to false
+  block:
+    - name: Configure --profiling=false (1.2.15)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        regexp: '^\s*-\s+--profiling=.*$'
+        line: "    - --profiling=false"
+        state: present
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: apiserver_manifest is defined
+
+    - name: 🟢 Task 1.2.15 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.15 --profiling argument set to false."
+
+  rescue:
+    - name: 🔴 Task 1.2.15 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.15 Failed setting --profiling on {{ inventory_hostname }}. Execution stopped."  
+
+
+# 1.2.16 Ensure that the --audit-log-path argument is set
+# 1.2.17 Ensure that the --audit-log-maxage argument is set to 30
+# 1.2.18 Ensure that the --audit-log-maxbackup argument is set to 10
+# 1.2.19 Ensure that the --audit-log-maxsize argument is set to 100
+
+- name: 1.2.16-1.2.19 Configure API Server Audit Logging and Rotation
+  block:
+    - name: Ensure audit log directory exists and is secured (1.2.16)
+      ansible.builtin.file:
+        path: /var/log/kubernetes
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Ensure audit log file exists and is secure (1.2.16)
+      ansible.builtin.file:
+        path: "{{ audit_log_path }}"
+        state: touch
+        owner: root
+        group: root
+        mode: '0600'
+      # Note: audit_log_path must be defined (e.g., /var/log/kubernetes/audit.log)
+
+    - name: Ensure --audit-log-path is set  (1.2.16)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--audit-log-path=.*$'
+        line: '    - --audit-log-path={{ audit_log_path }}'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+
+    - name: Set --audit-log-maxage (1.2.17)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--audit-log-maxage=.*$'
+        line: '    - --audit-log-maxage={{ audit_log_maxage | default(30) }}'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+
+    - name: Set --audit-log-maxbackup (1.2.18)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--audit-log-maxbackup=.*$'
+        line: '    - --audit-log-maxbackup={{ audit_log_maxbackup | default(10) }}'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+
+    - name: Set --audit-log-maxsize (1.2.19)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--audit-log-maxsize=.*$'
+        line: '    - --audit-log-maxsize={{ audit_log_maxsize | default(100) }}'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+
+    - name: 🟢 Task 1.2.16-1.2.19 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.16-1.2.19 Audit logging configured and secured."
+
+  rescue:
+    - name: 🔴 Task 1.2.16-1.2.19 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.16-1.2.19 Failed setting audit log flags/paths on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.20 Ensure that the --request-timeout is set to 300s 
+
+- name: 1.2.20 Ensure that the --request-timeout is set to 300s
+  block:
+    - name: Configure --request-timeout=300s (1.2.20)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--request-timeout=.*$'
+        line: '    - --request-timeout=300s'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+
+    - name: 🟢 Task 1.2.20 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.20 --request-timeout set to 300s."
+
+  rescue:
+    - name: 🔴 Task 1.2.20 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.20 Failed setting --request-timeout on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.21 Ensure that the --service-account-lookup 
+
+- name: 1.2.21 Ensure that the --service-account-lookup is set to true
+  block:
+    - name: Configure --service-account-lookup=true (1.2.21)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--service-account-lookup=.*$'
+        line: '    - --service-account-lookup=true'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+
+    - name: 🟢 Task 1.2.21 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.21 --service-account-lookup set to true."
+
+  rescue:
+    - name: 🔴 Task 1.2.21 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.21 Failed setting --service-account-lookup on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.22 Ensure that the --service-account-key-file argument 
+
+- name: 1.2.22 Ensure that the --service-account-key-file argument is set
+  block:
+    - name: 1.2.22 [Update/Replace] --service-account-key-file argument
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s+--service-account-key-file=.*$'
+        line: '    - --service-account-key-file={{ service_account_key_path }}'
+        backrefs: true
+      register: sa_key_update
+    - name: 1.2.22 [Insert] --service-account-key-file if not present
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        line: '    - --service-account-key-file={{ service_account_key_path }}'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: not sa_key_update.changed
+
+    - name: 🟢 Task 1.2.22 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.22 --service-account-key-file argument is set."
+
+  rescue:
+    - name: 🔴 Task 1.2.22 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.22 Failed setting --service-account-key-file on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.23 Ensure that the --etcd-certfile and --etcd-keyfile are set
+
+- name: 1.2.23 Ensure that the --etcd-certfile and --etcd-keyfile are set
+  block:
+    # Set hostname for Kubespray
+    - name: Set node_hostname if kubespray is enabled
+      ansible.builtin.set_fact:
+        node_hostname: "{{ ansible_hostname | default(inventory_hostname) }}"
+
+    - name: Set conditional etcd client paths
+      ansible.builtin.set_fact:
+        etcd_client_cert_path: >
+          {{ (kubespray | default(false) | bool) | ternary(
+              '/etc/ssl/etcd/ssl/node-' ~ node_hostname ~ '.pem',
+              kubernetes_pki_dir ~ '/apiserver-etcd-client.crt'
+            )
+          }}
+        etcd_client_key_path: >
+          {{ (kubespray | default(false) | bool) | ternary(
+              '/etc/ssl/etcd/ssl/node-' ~ node_hostname ~ '-key.pem',
+              kubernetes_pki_dir ~ '/apiserver-etcd-client.key'
+            )
+          }}
+
+    - name: Configure --etcd-certfile
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--etcd-certfile=.*$'
+        line: "    - --etcd-certfile={{ etcd_client_cert_path }}"
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+
+    - name: Configure --etcd-keyfile
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--etcd-keyfile=.*$'
+        line: "    - --etcd-keyfile={{ etcd_client_key_path }}"
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+    
+    - name: 🟢 Task 1.2.23 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.23 Ensure that the --etcd-certfile and --etcd-keyfile are set"
+  
+  rescue:
+    - name: 🔴 Task 1.2.23 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.23 Failed setting --etcd-certfile and --etcd-keyfile on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.24 Ensure that the --tls-cert-file and --tls-private-key-file
+
+- name: 1.2.24 Ensure that the --tls-cert-file and --tls-private-key-file are set
+  block:
+    - name: 1.2.24 [Update/Replace] --tls-cert-file argument
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s+--tls-cert-file=.*$'
+        line: '    - --tls-cert-file={{ apiserver_cert_path }}'
+        backrefs: true
+      register: cert_update
+    - name: 1.2.24 [Insert] --tls-cert-file if not present
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        line: '    - --tls-cert-file={{ apiserver_cert_path }}'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: not cert_update.changed
+    
+    - name: 1.2.24 [Update/Replace] --tls-private-key-file argument
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s+--tls-private-key-file=.*$'
+        line: '    - --tls-private-key-file={{ apiserver_key_path }}'
+        backrefs: true
+      register: key_update
+    - name: 1.2.24 [Insert] --tls-private-key-file if not present
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        line: '    - --tls-private-key-file={{ apiserver_key_path }}'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: not key_update.changed
+
+    - name: 🟢 Task 1.2.24 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.24 --tls-cert-file and --tls-private-key-file flags are set."
+
+  rescue:
+    - name: 🔴 Task 1.2.24 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.24 Failed setting API Server TLS flags on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.25 Ensure that the --client-ca-file argument 
+
+- name: 1.2.25 Ensure that the --client-ca-file argument is set
+  block:
+    - name: 1.2.25 [Update/Replace] --client-ca-file argument
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s+--client-ca-file=.*$'
+        line: '    - --client-ca-file={{ ca_path }}'
+        backrefs: true
+      register: client_ca_update 
+
+    - name: 1.2.25 [Insert] --client-ca-file if not present
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        line: '    - --client-ca-file={{ ca_path }}'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: not client_ca_update.changed
+
+    - name: 🟢 Task 1.2.25 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.25 --client-ca-file argument is set."
+
+  rescue:
+    - name: 🔴 Task 1.2.25 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.25 Failed setting --client-ca-file on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.26 Ensure that the --etcd-cafile argument
+
+- name: 1.2.26 ENSURE --ETCD-CAFILE ARGUMENT IS SET
+  block:
+    - name: Set --etcd-cafile argument correctly (Kubespray / Default)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--etcd-cafile=.*$'
+        line: "    - --etcd-cafile={{ (kubespray | default(false) | bool) | ternary('/etc/ssl/etcd/ssl/ca.pem', kubernetes_pki_dir ~ '/etcd/ca.crt') }}"
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: apiserver_manifest is defined  
+    
+    - name: 🟢 Task 1.2.26 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.26 --etcd-cafile argument set successfully to {{ apiserver_manifest }}."
+
+  rescue:
+    - name: 🔴 Task 1.2.26 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.26 Failed setting --etcd-cafile argument on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.27 Ensure that the --encryption-provider-config argument is set as appropriate
+# 1.2.28 Ensure that encryption providers are appropriately configured
+
+- name: 1.2.27-1.2.28 Ensure API Server uses Encryption Configuration
+  block:
+    - name: Deploy Encryption Configuration File (1.2.27-1.2.28)
+      ansible.builtin.template:
+        src: encrypt-config.yml.j2
+        dest: "{{ cis_config_dir }}/encrypt-config.yml"
+        owner: root
+        group: root
+        mode: '0644'
+      when: encrypt_secrets is defined and encrypt_secrets | length > 0
+
+    - name: Ensure --encryption-provider-config argument (1.2.27-1.2.28)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        regexp: '^\s*-\s+--encryption-provider-config=.*$'
+        line: '    - --encryption-provider-config={{ cis_config_dir }}/encrypt-config.yml'
+        state: present
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+
+    - name: 🟢 Task 1.2.27-1.2.28 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.27-1.2.28 Encryption configuration file deployed and flag set."
+
+  rescue:
+    - name: 🔴 Task 1.2.27-1.2.28 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.27-1.2.28 Failed setting encryption configuration on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.29 Ensure that the API Server only makes use of Strong Cryptographic Ciphers
+
+- name: 1.2.29 Ensure API Server uses Strong Cryptographic Ciphers
+  block:
+    - name: 1.2.29 [Update/Replace] --tls-cipher-suites if value is incorrect
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^(\s+- --tls-cipher-suites=)(?!{{ tls_cipher_suites }}).*$'
+        line: '\1{{ tls_cipher_suites }}'
+        backrefs: true
+      when: apiserver_manifest is defined
+      register: tls_cipher_update
+
+    - name: 1.2.29 [Insert] --tls-cipher-suites if not present
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        state: present
+        regexp: '^\s+- --tls-cipher-suites=.*$'
+        line: '    - --tls-cipher-suites={{ tls_cipher_suites }}'
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: 
+        - apiserver_manifest is defined
+        - not tls_cipher_update.changed
+
+    - name: 🟢 Task 1.2.29 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.29 Strong cryptographic ciphers flag is set."
+
+  rescue:
+    - name: 🔴 Task 1.2.29 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.29 Failed setting TLS cipher suites on {{ inventory_hostname }}. Execution stopped."
+
+# 1.2.30 Ensure that the --service-account-extend-token-expiration
+
+- name: 1.2.30 Ensure --service-account-extend-token-expiration is set to false
+  block:
+    - name: Configure --service-account-extend-token-expiration=false (1.2.30)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        regexp: '^\s*-\s+--service-account-extend-token-expiration=.*$'
+        line: "    - --service-account-extend-token-expiration=false"
+        state: present
+        insertafter: '^\s*-\s+--advertise-address=.*$'
+      when: apiserver_manifest is defined
+
+    - name: 🟢 Task 1.2.30 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.2.30 --service-account-extend-token-expiration set to false."
+
+  rescue:
+    - name: 🔴 Task 1.2.30 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.2.30 Failed setting token expiration flag on {{ inventory_hostname }}. Execution stopped."
+
+# 3.2.1 Ensure that a minimal audit policy is created 
+# 3.2.2 Ensure that the audit policy covers key security concerns
+
+- name: 3.2.1-3.2.2 Configure API Server Audit Policy
+  block:
+    - name: Ensure that a minimal audit policy is created (3.2.1)
+      ansible.builtin.copy:
+        src: audit-policy.yml
+        dest: "{{ cis_config_dir }}/audit-policy.yml"
+        owner: root
+        group: root
+        mode: '0644'
+    - name: Ensure that the audit policy covers key security concerns (3.2.2)
+      ansible.builtin.lineinfile:
+        path: "{{ apiserver_manifest }}"
+        regexp: '^\s*-\s+--audit-policy-file=.*$'
+        line: '    - --audit-policy-file={{ cis_config_dir }}/audit-policy.yml'
+        state: present
+        insertafter: '^\s*-\s+--audit-log-maxage=.*$'
+
+    - name: 🟢 Task 3.2.1-3.2.2 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 3.2.1-3.2.2 Audit policy file deployed and flag set."
+
+  rescue:
+    - name: 🔴 Task 3.2.1-3.2.2 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 3.2.1-3.2.2 Failed setting audit policy on {{ inventory_hostname }}. Execution stopped."

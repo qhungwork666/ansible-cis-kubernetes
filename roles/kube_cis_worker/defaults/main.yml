@@ -1,0 +1,54 @@
+kubelet_service_path: "/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf"
+kubelet_service_path_kubespray: "/etc/systemd/system/kubelet.service"
+
+kubelet_service_arg_kubespray: "/etc/kubernetes/kubelet.env"
+
+kubelet_config_path : "/etc/kubernetes/kubelet.conf"
+
+
+kubelet_ca_path : "/etc/kubernetes/pki/ca.crt"
+kubelet_ca_path_kubespray : "/etc/kubernetes/ssl/ca.crt"
+
+
+kubelet_config_yaml_path: "/var/lib/kubelet/config.yaml"
+kubelet_config_yaml_path_kubespray: "/etc/kubernetes/kubelet-config.yaml"
+
+kubelet_authentication_x509_clientCAFile: "/etc/kubernetes/pki/ca.crt"
+kubelet_authentication_x509_clientCAFile_kubespray: "/etc/kubernetes/ssl/ca.crt"
+
+kubelet_feature_gate_flag: "--feature-gates=RotateKubeletServerCertificate=true"
+
+kubelet_tls_ciphers_suites:
+  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  - TLS_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_RSA_WITH_AES_128_GCM_SHA256
+
+kubelet_pod_pid_limit: 4096  
+
+kube_pods_subnet: "192.168.0.0/16"
+kube_svc_subnet: "10.233.0.0/16"
+kube_node_addresses: "172.29.50.0/24"
+
+kubelet_allow_ips:
+  - "localhost"
+  - "link-local"
+  - "127.0.0.1"
+  - "{{ kube_pods_subnet }}"   
+  - "{{ kube_svc_subnet }}"   
+  - "{{ kube_node_addresses }}"
+
+kube_proxy: true
+kubeproxy_config_path: "/var/lib/kube-proxy/config.conf"
+
+# kubespray enable set true, disable set false
+kubespray: false
+
+# kubelet serving cert approver
+kubelet_approver: false
+registry_local: null
+kubelet_approver_version: "0.9.3"

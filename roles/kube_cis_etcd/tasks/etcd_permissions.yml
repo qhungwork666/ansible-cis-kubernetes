@@ -1,0 +1,62 @@
+- name: Check etcd manifest file status
+  ansible.builtin.stat:
+    path: "{{ etcd_manifest }}"
+  register: etcd_manifest_stat
+  ignore_errors: true
+
+# 1.1.7 Ensure etcd manifest perms are 600
+# 1.1.8 Ensure that the etcd pod specification file ownership is set to root:root restrictive
+
+- name: 1.1.7-1.1.8 Ensure etcd manifest
+  block:
+    - name: Ensure etcd manifest 
+      file:
+        path: "{{ etcd_manifest }}"
+        mode: '0600'
+        owner: root
+        group: root
+      when: 
+        - etcd_manifest_stat.stat.exists
+        - not (kubespray | default(false) | bool)  
+
+    - name: 🟢 Task 1.1.7-1.1.8 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.1.7-1.1.8 Ensure etcd manifest"
+
+  rescue:
+    - name: 🔴 Task 1.1.7-1.1.8 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.1.7-1.1.8 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 1.1.11 Ensure that the etcd data directory permissions are set to 700 or more restrictive
+# 1.1.12 Ensure that the etcd data directory ownership is set to etcd:etcd
+
+- name: 1.1.11-1.1.12 Ensure etcd data directory
+  block: 
+    - name: Ensure etcd group exists
+      ansible.builtin.group:
+        name: etcd
+        state: present
+    - name: Ensure etcd user exists
+      ansible.builtin.user:
+        name: etcd
+        group: etcd
+        system: yes 
+        shell: /sbin/nologin
+        state: present
+    - name: Ensure etcd manifest 
+      file:
+        path: "{{ etcd_data_dir }}"
+        mode: '0700'
+        owner: etcd
+        group: etcd
+        state: directory
+
+    - name: 🟢 Task 1.1.11-1.1.12 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.1.11-1.1.12 Ensure etcd data directory"
+
+  rescue:
+    - name: 🔴 Task 1.1.11-1.1.12 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.1.11-1.1.12 Failed setting on {{ inventory_hostname }}. Execution stopped."

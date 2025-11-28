@@ -1,0 +1,32 @@
+# Files & ownership controls (4.1.*)
+- name: Include files permissions tasks
+  include_tasks: worker_configuration_files.yml
+  when: not (kubespray | default(false) | bool)
+
+# Files & ownership controls - kubespray (4.1.*)
+- name: Include files permissions tasks
+  include_tasks: worker_configuration_files_kubespray.yml
+  when: kubespray | default(false) | bool
+
+# Kubelet config (4.2.*)
+- name: Include kubelet config tasks
+  include_tasks: kubelet_flags.yml
+  when: not (kubespray | default(false) | bool)
+
+# Kubelet config - kubespray (4.2.*)
+- name: Include kubelet config tasks - kubespray
+  include_tasks: kubelet_flags_kubespray.yml
+  when: kubespray | default(false) | bool
+
+# Kubelet serving cert approver (Options)
+- name: Include kubelet approver
+  include_tasks: kubelet_approver.yml
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+    - kubelet_approver | default(false) | bool
+
+- name: Restart kubelet
+  ansible.builtin.service:
+    daemon_reload: true
+    name: kubelet
+    state: restarted    

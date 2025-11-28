@@ -1,0 +1,7 @@
+# paths (override in group_vars if needed)
+etcd_manifest: "{{ k8s_manifests_dir }}/etcd.yaml"
+etcd_cert_path: "/etc/kubernetes/pki/etcd"
+etcd_data_dir: "/var/lib/etcd"
+
+# kubespray enable set true, disable set false
+kubespray: false

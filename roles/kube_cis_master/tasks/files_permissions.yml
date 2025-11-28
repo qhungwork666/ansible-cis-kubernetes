@@ -1,0 +1,191 @@
+---
+# 1.1.1 Ensure apiserver manifest perms are 600
+# 1.1.2 Ensure that the API server pod specification file ownership is set to root:root restrictive
+- name: 1.1.1-1.1.2 Ensure apiserver manifest
+  block:
+    - name: Ensure apiserver manifest
+      file:
+        path: "{{ apiserver_manifest }}"
+        mode: '0600'
+        owner: root
+        group: root
+
+    - name: 🟢 Task 1.1.1-1.1.2 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.1.1-1.1.2 Ensure apiserver manifest"
+
+  rescue:
+    - name: 🔴 Task 1.1.1-1.1.2 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.1.1-1.1.2 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 1.1.3 Ensure controller-manager manifest perms are 600
+# 1.1.4 Ensure that the controller-manager pod specification file ownership is set to root:root restrictive
+
+- name: 1.1.3-1.1.4 Ensure controller-manager manifest
+  block:
+    - name: Ensure controller-manager manifest
+      file:
+        path: "{{ controller_manager_manifest }}"
+        mode: '0600'
+        owner: root
+        group: root
+
+    - name: 🟢 Task 1.1.3-1.1.4 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.1.3-1.1.4 Ensure controller-manager manifest"
+
+  rescue:
+    - name: 🔴 Task 1.1.3-1.1.4 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.1.3-1.1.4 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 1.1.5 Ensure scheduler manifest perms are 600
+# 1.1.6 Ensure that the scheduler pod specification file ownership is set to root:root restrictive
+
+- name: 1.1.5-1.1.6 Ensure scheduler manifest
+  block:
+    - name: Ensure scheduler manifest
+      file:
+        path: "{{ scheduler_manifest }}"
+        mode: '0600'
+        owner: root
+        group: root
+
+    - name: 🟢 Task 1.1.5-1.1.6 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.1.5-1.1.6 Ensure scheduler manifest"
+
+  rescue:
+    - name: 🔴 Task 1.1.5-1.1.6 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.1.5-1.1.6 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 1.1.9 Ensure that the Container Network Interface file permissions are set to 600 or more restrictive
+# 1.1.10 Ensure that the Container Network Interface file ownership is set to root:root
+
+- name: 1.1.9-1.1.10 Ensure CNI file
+  block:
+    - name: Find all *.conflist files in /etc/cni/net.d
+      ansible.builtin.find:
+        paths: "{{ cni_file }}"
+        patterns: "*.conflist"
+        recurse: no
+      register: cni_files_conflist
+
+    - name: Ensure CNI file 
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        owner: root             
+        group: root             
+        mode: '0600'            
+        state: file
+      loop: "{{ cni_files_conflist.files }}"
+      loop_control:
+        loop_var: item
+
+    - name: 🟢 Task 1.1.9-1.1.10 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.1.9-1.1.10 Ensure CNI file"
+
+  rescue:
+    - name: 🔴 Task 1.1.9-1.1.10 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.1.9-1.1.10 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+
+# 1.1.13 Ensure that the default administrative credential file permissions are set to 600
+# 1.1.14 Ensure that the default administrative credential file ownership is set to root:root
+# 1.1.15 Ensure that the scheduler.conf file permissions are set to 600 or more restrictive
+# 1.1.16 Ensure that the scheduler.conf file ownership is set to root:root
+# 1.1.17 Ensure that the controller-manager.conf file permissions are set to 600 or more restrictive
+# 1.1.18 Ensure that the controller-manager.conf file ownership is set to root:root 
+
+- name: 1.1.13-1.1.18 Harden Kubernetes Configuration Files (admin.conf, scheduler.conf, controller-manager.conf)
+  block:
+    # 1.1.13-1.1.14: Ensure admin.conf
+    - name: Ensure admin.conf (1.1.13-1.1.14)
+      ansible.builtin.file:
+        path: "{{ admin_conf }}"
+        mode: '0600'
+        owner: root
+        group: root
+
+    # 1.1.15-1.1.16: Ensure scheduler.conf
+    - name: Ensure scheduler.conf (1.1.15-1.1.16)
+      ansible.builtin.file:
+        path: "{{ scheduler_conf }}"
+        mode: '0600'
+        owner: root
+        group: root
+
+    # 1.1.17-1.1.18: Ensure controller-manager.conf
+    - name: Ensure controller-manager.conf (1.1.17-1.1.18)
+      ansible.builtin.file:
+        path: "{{ controller_manager_conf }}"
+        mode: '0600'
+        owner: root
+        group: root
+
+    - name: 🟢 Task 1.1.13-1.1.18 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.1.13-1.1.18 Hardened Kubernetes configuration files (admin, scheduler, controller-manager)."
+
+  rescue:
+    - name: 🔴 Task 1.1.13-1.1.18 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.1.13-1.1.18 Failed setting permissions/ownership on {{ inventory_hostname }}. Execution stopped."
+
+# 1.1.19 Ensure that the Kubernetes PKI directory and file ownership is set to root:root
+
+- name: 1.1.19 Ensure Kubernetes PKI directory ownership is root:root
+  block:
+    - name: Ensure kubernetes PKI directory ownership is root:root (1.1.19)
+      ansible.builtin.file:
+        path: "{{ kubernetes_pki_dir }}"
+        state: directory
+        recurse: yes
+        owner: root
+        group: root
+
+    - name: 🟢 Task 1.1.19 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.1.19 PKI directory ownership set to root:root."
+        
+  rescue:
+    - name: 🔴 Task 1.1.19 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.1.19 Failed setting PKI directory ownership on {{ inventory_hostname }}. Execution stopped."
+
+# 1.1.20 Ensure that the Kubernetes PKI certificate file permissions are set to 644 or more restrictive
+# 1.1.21 Ensure that the Kubernetes PKI key file permissions are set to 600
+
+- name: 1.1.20-1.1.21 Harden Kubernetes PKI File Permissions
+  block:
+    - name: Find all PKI certificate (*.crt) and key (*.key) files
+      ansible.builtin.find:
+        paths: "{{ kubernetes_pki_dir }}"
+        patterns: "*.crt,*.key"
+        recurse: yes
+      register: pki_files
+
+    - name: Ensure PKI certificate files have mode 0644 (CIS 1.1.20)
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        mode: '0644' 
+      loop: "{{ pki_files.files | selectattr('path', 'search', '\\.crt$') }}"
+
+    - name: Ensure PKI private key files have mode 0600 (CIS 1.1.21)
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        mode: '0600' 
+      loop: "{{ pki_files.files | selectattr('path', 'search', '\\.key$') }}"
+      
+    - name: 🟢 Task 1.1.20-1.1.21 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 1.1.20-1.1.21 PKI file permissions set correctly (644 for certs, 600 for keys)."
+
+  rescue:
+    - name: 🔴 Task 1.1.20-1.1.21 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 1.1.20-1.1.21 Failed setting PKI file permissions on {{ inventory_hostname }}. Execution stopped."

@@ -1,0 +1,169 @@
+# 2.1-2.2 Ensure that the --cert-file and --key-file
+- name: 2.1-2.2 Ensure that the --cert-file and --key-file 
+  block:
+    - name: Set --cert-file argument (Default)
+      ansible.builtin.lineinfile:
+        path: "{{ etcd_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--cert-file=.*$'
+        line: '    - --cert-file={{ etcd_cert_path }}/server.crt'
+        insertafter: '^\s+- etcd$'
+
+    - name: Set --key-file argument (Default)
+      ansible.builtin.lineinfile:
+        path: "{{ etcd_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--key-file=.*$'
+        line: '    - --key-file={{ etcd_cert_path }}/server.key'
+        insertafter: '^\s+- etcd$'
+
+    - name: 🟢 Task 2.1-2.2 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 2.1-2.2 Ensure that the --cert-file and --key-file"
+
+  rescue:
+    - name: 🔴 Task 2.1-2.2 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 2.1-2.2 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 2.3 Ensure that the --client-cert-auth
+
+- name: 2.3 Ensure that the --client-cert-auth
+  block:
+    - name: Ensure that the --client-cert-auth
+      ansible.builtin.lineinfile:
+        path: "{{ etcd_manifest }}"
+        state: present
+        backrefs: true
+        regexp: '^\s*-\s+--client-cert-auth=.*$'
+        line: "    - --client-cert-auth=true"
+        insertafter: '^\s+- etcd$'
+
+    - name: 🟢 Task 2.3 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 2.3 Ensure that the --client-cert-auth"
+
+  rescue:
+    - name: 🔴 Task 2.3 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 2.3 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 2.4 Ensure that the --auto-tls
+
+- name: 2.4 Ensure that the --auto-tls
+  block:
+    - name: Ensure that the --auto-tls
+      ansible.builtin.lineinfile:
+        path: "{{ etcd_manifest }}"
+        state: present
+        backrefs: true
+        regexp: '^\s*-\s+--auto-tls=.*$'
+        line: "    - --auto-tls=false"
+        insertafter: '^\s+- etcd$'
+
+    - name: 🟢 Task 2.4 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 2.4 Ensure that the --auto-tls"
+
+  rescue:
+    - name: 🔴 Task 2.4 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 2.4 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 2.5 Ensure that the --peer-cert-file and --peer-key-file
+
+- name: 2.5 Ensure that the --peer-cert-file and --peer-key-file
+  block:
+    # --- Task 1: --peer-cert-file (DEFAULT) ---
+    - name: Set --peer-cert-file argument (Default)
+      ansible.builtin.lineinfile:
+        path: "{{ etcd_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--peer-cert-file=.*$'
+        line: '    - --peer-cert-file={{ etcd_cert_path }}/peer.crt'
+        insertafter: '^\s+- etcd$'
+
+    # --- Task 2: --peer-key-file (DEFAULT) ---
+    - name: Set --peer-key-file argument (Default)
+      ansible.builtin.lineinfile:
+        path: "{{ etcd_manifest }}"
+        state: present
+        regexp: '^\s*-\s*--peer-key-file=.*$'
+        line: '    - --peer-key-file={{ etcd_cert_path }}/peer.key'
+        insertafter: '^\s+- etcd$'
+
+    - name: 🟢 Task 2.5 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 2.5 Ensure that the --peer-cert-file and --peer-key-file"
+
+  rescue:
+    - name: 🔴 Task 2.5 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 2.5 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+# 2.6 Ensure that the --peer-client-cert-auth
+
+- name: 2.6 Ensure that the --peer-client-cert-auth
+  block:
+    - name: Ensure that the --peer-client-cert-auth 
+      ansible.builtin.lineinfile:
+        path: "{{ etcd_manifest }}"
+        state: present
+        backrefs: true
+        regexp: '^\s*-\s+--peer-client-cert-auth=.*$'
+        line: "    - --peer-client-cert-auth=true"
+        insertafter: '^\s+- etcd$'
+
+    - name: 🟢 Task 2.6 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 2.6 Ensure that the --peer-client-cert-auth"
+
+  rescue:
+    - name: 🔴 Task 2.6 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 2.6 Failed setting on {{ inventory_hostname }}. Execution stopped."
+
+
+# 2.7 Ensure that the --peer-auto-tls
+
+- name: 2.7 Ensure that the --peer-auto-tls
+  block:
+    - name: Ensure that the --peer-auto-tlsh (2.7)
+      ansible.builtin.lineinfile:
+        path: "{{ etcd_manifest }}"
+        state: present
+        backrefs: true
+        regexp: '^\s*-\s+--peer-auto-tls=.*$'
+        line: "    - --peer-auto-tls=false"
+        insertafter: '^\s+- etcd$'
+
+    - name: 🟢 Task 2.7 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 2.7 Ensure that the --peer-auto-tls is set to false."
+
+  rescue:
+    - name: 🔴 Task 2.7 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 2.7 Failed setting --peer-auto-tls on {{ inventory_hostname }}. Execution stopped."
+
+# 2.8 Ensure that a unique Certificate Authority
+
+- name: 2.8 Ensure that a unique Certificate Authority
+  block:
+    - name: Ensure that a unique Certificate Authority (2.8)
+      ansible.builtin.lineinfile:
+        path: "{{ etcd_manifest }}"
+        state: present
+        backrefs: true
+        regexp: '^\s*-\s*--trusted-ca-file=.*$'
+        line: '    - --trusted-ca-file={{ etcd_cert_path }}/ca.crt'
+        insertafter: '^\s+- etcd$'
+
+    - name: 🟢 Task 2.8 completed status
+      ansible.builtin.debug:
+        msg: "✅ CIS 2.8 Ensure that a unique Certificate Authority is used."
+
+  rescue:
+    - name: 🔴 Task 2.8 Status FAIL
+      ansible.builtin.debug:
+        msg: "🛑 FAIL: CIS 2.8 Failed setting --trusted-ca-file on {{ inventory_hostname }}. Execution stopped."

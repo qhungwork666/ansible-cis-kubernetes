@@ -1,0 +1,129 @@
+apiVersion: audit.k8s.io/v1
+kind: Policy
+
+# Drop stage "RequestReceived" (too much noise, low value)
+omitStages:
+  - "RequestReceived"
+
+rules:
+  # --- NOISE REDUCTION: Ignore health, metrics, version, and system watches ---
+
+  # Suppress noisy non-resource endpoints
+  - level: None
+    nonResourceURLs:
+      - "/healthz*"
+      - "/livez*"
+      - "/readyz*"
+      - "/metrics"
+      - "/version"
+      - "/openapi*"
+
+  # Suppress excessive watch/list activity from kube-proxy
+  - level: None
+    users: ["system:kube-proxy"]
+    verbs: ["watch", "list"]
+    resources:
+      - group: ""        # core
+        resources: ["endpoints", "services"]
+      - group: "discovery.k8s.io"
+        resources: ["endpointslices"]
+
+  # Suppress frequent watch/list activity from controller-manager & scheduler
+  - level: None
+    users:
+      - "system:kube-controller-manager"
+      - "system:kube-scheduler"
+    verbs: ["watch", "list"]
+    resources:
+      - group: ""
+        resources: ["endpoints", "events", "leases"]
+      - group: "discovery.k8s.io"
+        resources: ["endpointslices"]
+
+  # --- SENSITIVE DATA PROTECTION: Exclude Secret body from logs ---
+
+  # Secrets in all namespaces: log only Metadata
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["secrets"]
+
+  # --- HIGH-VALUE CONFIGURATION: Log body details upon change ---
+
+  # ConfigMaps in kube-system: log Request body (for easy troubleshooting)
+  - level: Request
+    resources:
+      - group: ""
+        resources: ["configmaps"]
+    namespaces: ["kube-system"]
+
+  # RBAC: Role/ClusterRole & Binding — log RequestResponse on mutation
+  - level: RequestResponse
+    verbs: ["create", "update", "patch", "delete"]
+    resources:
+      - group: "rbac.authorization.k8s.io"
+        resources: ["roles", "clusterroles", "rolebindings", "clusterrolebindings"]
+
+  # Admission Webhooks & CRDs: log RequestResponse on mutation (highly sensitive)
+  - level: RequestResponse
+    verbs: ["create", "update", "patch", "delete"]
+    resources:
+      - group: "admissionregistration.k8s.io"
+        resources: ["validatingwebhookconfigurations", "mutatingwebhookconfigurations"]
+      - group: "apiextensions.k8s.io"
+        resources: ["customresourcedefinitions"]
+
+  # Namespace & Core Resources (Storage/Network/Ingress): log RequestResponse on mutation
+  - level: RequestResponse
+    verbs: ["create", "update", "patch", "delete"]
+    resources:
+      - group: ""
+        resources: ["namespaces", "persistentvolumeclaims"]
+      - group: "storage.k8s.io"
+        resources: ["storageclasses"]
+      - group: "networking.k8s.io"
+        resources: ["ingresses", "networkpolicies"]
+
+  # Primary Workloads (Pod/Deploy/DS/SS/Job/CronJob): log RequestResponse on mutation
+  - level: RequestResponse
+    verbs: ["create", "update", "patch", "delete"]
+    resources:
+      - group: ""
+        resources: ["pods"]
+      - group: "apps"
+        resources: ["deployments", "daemonsets", "statefulsets", "replicasets"]
+      - group: "batch"
+        resources: ["jobs", "cronjobs"]
+
+  # Pod exec/attach: log Request (captures command in body for threat detection)
+  - level: Request
+    resources:
+      - group: ""
+        resources: ["pods/exec", "pods/attach"]
+
+  # Pod log/status/portforward: Metadata only (to prevent logging massive/sensitive data)
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["pods/log", "pods/status", "pods/portforward"]
+
+  # Node & Node/status: Metadata only (to prevent log spam)
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["nodes", "nodes/status"]
+
+  # TokenReview/SubjectAccessReview: Metadata only (to track authentication/authorization attempts)
+  - level: Metadata
+    resources:
+      - group: "authentication.k8s.io"
+        resources: ["tokenreviews"]
+      - group: "authorization.k8s.io"
+        resources: ["subjectaccessreviews"]
+
+  # --- CATCH-ALL: Default logging level ---
+
+  # Everything else: Metadata (sufficient for context, lowest risk profile)
+  - level: Metadata
+    omitStages:
+      - "RequestReceived"
