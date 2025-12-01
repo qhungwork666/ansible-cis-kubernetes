@@ -1,6 +1,6 @@
 # 🛡️ Ansible CIS Kubernetes Hardening
 
-This repository contains a suite of Ansible Playbooks designed to **automatically check and apply security hardening** based on the **CIS Kubernetes Benchmark** to an existing Kubernetes cluster. This project ensures your cluster adheres to stringent security standards for both Control Plane and Worker Nodes.
+This comprehensive repository provides a robust suite of **Ansible Playbooks** meticulously engineered to **automatically check and apply security hardening** across your **Kubernetes cluster**. It strictly adheres to the latest **CIS Kubernetes Benchmark** (v1.11.1), ensuring your **Control Plane (Master)** and **Worker Nodes** achieve and maintain the highest level of security compliance.
 
 ## 1. 📖 Overview
 
@@ -17,7 +17,9 @@ This playbook specifically targets and addresses the following critical sections
 | 3. Control Plane Configuration | 5/5 rules             |
 | 4. Worker Node                 | 26/26 rules           |
 
-**Note on Rule 1.2.1:** This hardening suite explicitly **drops/ignores Rule 1.2.1** (Ensure that the `--anonymous-auth` argument is set to `false`). The `anonymous-auth` (on kube-apiserver) is set to **`true`** by default. This configuration is considered safe because authorization is still strictly controlled by **RBAC** (Role-Based Access Control).
+**Special Note on CIS Rule 1.2.1 (Anonymous Auth):**
+
+This hardening suite explicitly **drops/ignores Rule 1.2.1** (Ensure that the `--anonymous-auth` argument is set to `false`). We maintain `--anonymous-auth` (on the kube-apiserver) as **`true`** because this configuration is still considered secure due to the strict authorization enforced by **RBAC** (Role-Based Access Control).
 
 **Key Goals:**
 - **Automation**: Eliminate manual intervention and mitigate human error.
@@ -80,6 +82,19 @@ ansible-playbook -i inventory/staging.ini playbooks/apply-cis.yml --extra-vars "
 
 # For kubeadm
 ansible-playbook -i inventory/staging.ini playbooks/apply-cis.yml --extra-vars "kubelet_approver=true"
+```
+### 3.3 Running with docker
+
+```
+docker run --rm -it \
+  -v ~/.ssh/id_rsa:/home/ansible/.ssh/id_rsa:ro \
+  -v ./inventory:/tmp/inventory \
+  ansible-cis-k8s:v1.11.1 \
+  ansible-playbook \
+    -i /tmp/inventory/host.ini \
+    playbooks/apply-cis.yml \
+    --private-key /home/ansible/.ssh/id_rsa \
+    --extra-vars "kubespray=true"
 ```
 
 ---
