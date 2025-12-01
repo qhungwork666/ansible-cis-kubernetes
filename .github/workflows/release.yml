@@ -10,37 +10,12 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Cần 'write' để upload Release Asset
+      contents: read # Cần 'write' để upload Release Asset
       packages: write # Cần 'write' để push Image lên GHCR
       
     steps:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v4
-
-      # ==========================================================
-      # 💥 PHẦN BỔ SUNG: Nén Mã Nguồn và Upload
-      # ==========================================================
-
-      - name: 📦 Archive source code (excluding Dockerfile)
-        id: archive
-        run: |
-          TAG_NAME=${{ github.event.release.tag_name }}
-          REPO_NAME=${{ github.event.repository.name }}
-          ARCHIVE_NAME="${REPO_NAME}-${TAG_NAME}.tar.gz"
-          
-          tar -czf $ARCHIVE_NAME \
-            --exclude='Dockerfile' \
-            --exclude='.github' \
-            --exclude=$ARCHIVE_NAME . # <--- Thêm dòng này để loại trừ
-          
-          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_OUTPUT
-
-      - name: 📤 Upload Source Archive to Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ${{ steps.archive.outputs.ARCHIVE_NAME }} # Tên tệp đã lưu ở bước trên
-          # Token mặc định (GITHUB_TOKEN) đã có quyền 'contents: write'
-
       # ==========================================================
       # 🐳 PHẦN GỐC: Build và Push Docker Image
       # ==========================================================
