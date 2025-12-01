@@ -24,17 +24,16 @@ jobs:
       - name: 📦 Archive source code (excluding Dockerfile)
         id: archive
         run: |
-          # Định nghĩa tên tệp nén dựa trên tag (Ví dụ: my-repo-v1.0.0.tar.gz)
           TAG_NAME=${{ github.event.release.tag_name }}
           REPO_NAME=${{ github.event.repository.name }}
           ARCHIVE_NAME="${REPO_NAME}-${TAG_NAME}.tar.gz"
           
-          # Sử dụng tar để nén, loại trừ (-X) file .dockerignore
-          # Lưu ý: Sẽ không nén .git, node_modules nếu đã có trong .gitignore/.dockerignore
-          # Loại trừ thêm Dockerfile theo yêu cầu
-          tar -czf $ARCHIVE_NAME --exclude='Dockerfile' --exclude='.github' .
+          tar -czf $ARCHIVE_NAME \
+            --exclude='Dockerfile' \
+            --exclude='.github' \
+            --exclude=$ARCHIVE_NAME . # <--- Thêm dòng này để loại trừ
           
-          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_OUTPUT # Lưu tên tệp để dùng cho bước sau
+          echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_OUTPUT
 
       - name: 📤 Upload Source Archive to Release
         uses: softprops/action-gh-release@v1
