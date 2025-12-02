@@ -3,7 +3,7 @@ name: 🛡️ Ansible Lint
 
 on:
   pull_request:
-    branches: ["stable", "release/v*"]      
+    branches: ["stable", "release-v*"]      
   workflow_dispatch:
 
 concurrency:
