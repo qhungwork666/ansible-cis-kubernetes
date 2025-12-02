@@ -1,8 +1,8 @@
 # 🛡️ Ansible CIS Kubernetes Hardening
 
-This comprehensive repository provides a robust suite of **Ansible Playbooks** meticulously engineered to **automatically check and apply security hardening** across your **Kubernetes cluster**. It strictly adheres to the latest **CIS Kubernetes Benchmark** (v1.11-v1.12), ensuring your **Control Plane (Master)** and **Worker Nodes** achieve and maintain the highest level of security compliance.
+This comprehensive repository provides a robust suite of **Ansible Playbooks** meticulously engineered to **automatically check and apply security hardening** across your **Kubernetes cluster**. It strictly adheres to the latest **CIS Kubernetes Benchmark** (v1.12), ensuring your **Control Plane (Master)** and **Worker Nodes** achieve and maintain the highest level of security compliance.
 
-Support for Kubernetes versions: v1.29 to v1.34.
+Support for Kubernetes versions: v1.32 to v1.34.
 
 ## 1. 📖 Overview
 

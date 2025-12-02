@@ -580,26 +580,3 @@
     - name: 🔴 Task 4.2.14 Status FAIL
       ansible.builtin.debug:
         msg: "🛑 FAIL: CIS 4.2.14 Failed setting on {{ inventory_hostname }}. Execution stopped."
-
-# 4.2.15 Ensure that the --IPAddressDeny is set to any
-
-- name: 4.2.15 Ensure that the --IPAddressDeny is set to any
-  block:
-
-    - name: Insert systemd hardening access into kubelet.service
-      ansible.builtin.blockinfile:
-        path: "{{ kubelet_service_path }}"
-        marker: "# {mark} ANSIBLE KUBELET NETWORK SANDBOXING"
-        insertafter: '^\[Service\]'
-        block: |
-          IPAddressDeny=any
-          IPAddressAllow={{ kubelet_allow_ips | join(' ') }}
-
-    - name: 🟢 Task 4.2.15 completed status
-      ansible.builtin.debug:
-        msg: "✅ CIS 4.2.15 Ensure that the --IPAddressDeny is set to any"
-
-  rescue:
-    - name: 🔴 Task 4.2.15 Status FAIL
-      ansible.builtin.debug:
-        msg: "🛑 FAIL: CIS 4.2.15 Failed setting on {{ inventory_hostname }}. Execution stopped."

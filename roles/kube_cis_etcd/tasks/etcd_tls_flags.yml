@@ -1,5 +1,5 @@
-# 2.1-2.2 Ensure that the --cert-file and --key-file
-- name: 2.1-2.2 Ensure that the --cert-file and --key-file 
+# 2.1 Ensure that the --cert-file and --key-file
+- name: 2.1 Ensure that the --cert-file and --key-file 
   block:
     - name: Set --cert-file argument (Default)
       ansible.builtin.lineinfile:
@@ -17,18 +17,18 @@
         line: '    - --key-file={{ kube_cis_etcd_cert_path }}/server.key'
         insertafter: '^\s+- etcd$'
 
-    - name: 🟢 Task 2.1-2.2 completed status
+    - name: 🟢 Task 2.1 completed status
       ansible.builtin.debug:
-        msg: "✅ CIS 2.1-2.2 Ensure that the --cert-file and --key-file"
+        msg: "✅ CIS 2.1 Ensure that the --cert-file and --key-file"
 
   rescue:
-    - name: 🔴 Task 2.1-2.2 Status FAIL
+    - name: 🔴 Task 2.1 Status FAIL
       ansible.builtin.debug:
-        msg: "🛑 FAIL: CIS 2.1-2.2 Failed setting on {{ inventory_hostname }}. Execution stopped."
+        msg: "🛑 FAIL: CIS 2.1 Failed setting on {{ inventory_hostname }}. Execution stopped."
 
-# 2.3 Ensure that the --client-cert-auth
+# 2.2 Ensure that the --client-cert-auth
 
-- name: 2.3 Ensure that the --client-cert-auth
+- name: 2.2 Ensure that the --client-cert-auth
   block:
     - name: Ensure that the --client-cert-auth
       ansible.builtin.lineinfile:
@@ -39,18 +39,18 @@
         line: "    - --client-cert-auth=true"
         insertafter: '^\s+- etcd$'
 
-    - name: 🟢 Task 2.3 completed status
+    - name: 🟢 Task 2.2 completed status
       ansible.builtin.debug:
-        msg: "✅ CIS 2.3 Ensure that the --client-cert-auth"
+        msg: "✅ CIS 2.2 Ensure that the --client-cert-auth"
 
   rescue:
-    - name: 🔴 Task 2.3 Status FAIL
+    - name: 🔴 Task 2.2 Status FAIL
       ansible.builtin.debug:
-        msg: "🛑 FAIL: CIS 2.3 Failed setting on {{ inventory_hostname }}. Execution stopped."
+        msg: "🛑 FAIL: CIS 2.2 Failed setting on {{ inventory_hostname }}. Execution stopped."
 
-# 2.4 Ensure that the --auto-tls
+# 2.3 Ensure that the --auto-tls
 
-- name: 2.4 Ensure that the --auto-tls
+- name: 2.3 Ensure that the --auto-tls
   block:
     - name: Ensure that the --auto-tls
       ansible.builtin.lineinfile:
@@ -61,18 +61,18 @@
         line: "    - --auto-tls=false"
         insertafter: '^\s+- etcd$'
 
-    - name: 🟢 Task 2.4 completed status
+    - name: 🟢 Task 2.3 completed status
       ansible.builtin.debug:
-        msg: "✅ CIS 2.4 Ensure that the --auto-tls"
+        msg: "✅ CIS 2.3 Ensure that the --auto-tls"
 
   rescue:
-    - name: 🔴 Task 2.4 Status FAIL
+    - name: 🔴 Task 2.3 Status FAIL
       ansible.builtin.debug:
-        msg: "🛑 FAIL: CIS 2.4 Failed setting on {{ inventory_hostname }}. Execution stopped."
+        msg: "🛑 FAIL: CIS 2.3 Failed setting on {{ inventory_hostname }}. Execution stopped."
 
-# 2.5 Ensure that the --peer-cert-file and --peer-key-file
+# 2.4 Ensure that the --peer-cert-file and --peer-key-file
 
-- name: 2.5 Ensure that the --peer-cert-file and --peer-key-file
+- name: 2.4 Ensure that the --peer-cert-file and --peer-key-file
   block:
     # --- Task 1: --peer-cert-file (DEFAULT) ---
     - name: Set --peer-cert-file argument (Default)
@@ -92,18 +92,18 @@
         line: '    - --peer-key-file={{ kube_cis_etcd_cert_path }}/peer.key'
         insertafter: '^\s+- etcd$'
 
-    - name: 🟢 Task 2.5 completed status
+    - name: 🟢 Task 2.4 completed status
       ansible.builtin.debug:
-        msg: "✅ CIS 2.5 Ensure that the --peer-cert-file and --peer-key-file"
+        msg: "✅ CIS 2.4 Ensure that the --peer-cert-file and --peer-key-file"
 
   rescue:
-    - name: 🔴 Task 2.5 Status FAIL
+    - name: 🔴 Task 2.4 Status FAIL
       ansible.builtin.debug:
-        msg: "🛑 FAIL: CIS 2.5 Failed setting on {{ inventory_hostname }}. Execution stopped."
+        msg: "🛑 FAIL: CIS 2.4 Failed setting on {{ inventory_hostname }}. Execution stopped."
 
-# 2.6 Ensure that the --peer-client-cert-auth
+# 2.5 Ensure that the --peer-client-cert-auth
 
-- name: 2.6 Ensure that the --peer-client-cert-auth
+- name: 2.5 Ensure that the --peer-client-cert-auth
   block:
     - name: Ensure that the --peer-client-cert-auth 
       ansible.builtin.lineinfile:
@@ -114,21 +114,21 @@
         line: "    - --peer-client-cert-auth=true"
         insertafter: '^\s+- etcd$'
 
-    - name: 🟢 Task 2.6 completed status
+    - name: 🟢 Task 2.5 completed status
       ansible.builtin.debug:
-        msg: "✅ CIS 2.6 Ensure that the --peer-client-cert-auth"
+        msg: "✅ CIS 2.5 Ensure that the --peer-client-cert-auth"
 
   rescue:
-    - name: 🔴 Task 2.6 Status FAIL
+    - name: 🔴 Task 2.5 Status FAIL
       ansible.builtin.debug:
-        msg: "🛑 FAIL: CIS 2.6 Failed setting on {{ inventory_hostname }}. Execution stopped."
+        msg: "🛑 FAIL: CIS 2.5 Failed setting on {{ inventory_hostname }}. Execution stopped."
 
 
-# 2.7 Ensure that the --peer-auto-tls
+# 2.6 Ensure that the --peer-auto-tls
 
-- name: 2.7 Ensure that the --peer-auto-tls
+- name: 2.6 Ensure that the --peer-auto-tls
   block:
-    - name: Ensure that the --peer-auto-tlsh (2.7)
+    - name: Ensure that the --peer-auto-tlsh (2.6)
       ansible.builtin.lineinfile:
         path: "{{ kube_cis_etcd_manifest }}"
         state: present
@@ -137,20 +137,20 @@
         line: "    - --peer-auto-tls=false"
         insertafter: '^\s+- etcd$'
 
-    - name: 🟢 Task 2.7 completed status
+    - name: 🟢 Task 2.6 completed status
       ansible.builtin.debug:
-        msg: "✅ CIS 2.7 Ensure that the --peer-auto-tls is set to false."
+        msg: "✅ CIS 2.6 Ensure that the --peer-auto-tls is set to false."
 
   rescue:
-    - name: 🔴 Task 2.7 Status FAIL
+    - name: 🔴 Task 2.6 Status FAIL
       ansible.builtin.debug:
-        msg: "🛑 FAIL: CIS 2.7 Failed setting --peer-auto-tls on {{ inventory_hostname }}. Execution stopped."
+        msg: "🛑 FAIL: CIS 2.6 Failed setting --peer-auto-tls on {{ inventory_hostname }}. Execution stopped."
 
-# 2.8 Ensure that a unique Certificate Authority
+# 2.7 Ensure that a unique Certificate Authority
 
-- name: 2.8 Ensure that a unique Certificate Authority
+- name: 2.7 Ensure that a unique Certificate Authority
   block:
-    - name: Ensure that a unique Certificate Authority (2.8)
+    - name: Ensure that a unique Certificate Authority (2.7)
       ansible.builtin.lineinfile:
         path: "{{ kube_cis_etcd_manifest }}"
         state: present
@@ -159,12 +159,12 @@
         line: '    - --trusted-ca-file={{ kube_cis_etcd_cert_path }}/ca.crt'
         insertafter: '^\s+- etcd$'
 
-    - name: 🟢 Task 2.8 completed status
+    - name: 🟢 Task 2.7 completed status
       ansible.builtin.debug:
-        msg: "✅ CIS 2.8 Ensure that a unique Certificate Authority is used."
+        msg: "✅ CIS 2.7 Ensure that a unique Certificate Authority is used."
 
   rescue:
-    - name: 🔴 Task 2.8 Status FAIL
+    - name: 🔴 Task 2.7 Status FAIL
       ansible.builtin.debug:
-        msg: "🛑 FAIL: CIS 2.8 Failed setting --trusted-ca-file on {{ inventory_hostname }}. Execution stopped."
+        msg: "🛑 FAIL: CIS 2.7 Failed setting --trusted-ca-file on {{ inventory_hostname }}. Execution stopped."
         
