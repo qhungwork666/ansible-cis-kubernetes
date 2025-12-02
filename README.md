@@ -1,8 +1,8 @@
 # 🛡️ Ansible CIS Kubernetes Hardening
 
-This comprehensive repository provides a robust suite of **Ansible Playbooks** meticulously engineered to **automatically check and apply security hardening** across your **Kubernetes cluster**. It strictly adheres to the latest **CIS Kubernetes Benchmark** (v1.11-v1.12), ensuring your **Control Plane (Master)** and **Worker Nodes** achieve and maintain the highest level of security compliance.
+This comprehensive repository provides a robust suite of **Ansible Playbooks** meticulously engineered to **automatically check and apply security hardening** across your **Kubernetes cluster**. It strictly adheres to the latest **CIS Kubernetes Benchmark** (v1.9-v1.10-v1.11-v1.12), ensuring your **Control Plane (Master)** and **Worker Nodes** achieve and maintain the highest level of security compliance.
 
-Support for Kubernetes versions: v1.29 to v1.34.
+Support for Kubernetes versions: v1.27 to v1.34.
 
 ## 1. 📖 Overview
 
@@ -162,3 +162,24 @@ This hardening playbook supports clusters deployed using tools like Kubespray or
 
 If your cluster was deployed via Kubespray, the Etcd deployment is inherently secure: Kubespray typically deploys **Etcd as a Systemd service (not a Static Pod)**. This method guarantees that the entire **Etcd Section (CIS 1.2)** of the CIS Kubernetes Benchmark is **fully compliant by default**.
 
+## 5. 📌 CIS Kubernetes Version Notes
+
+This project uses **CIS Kubernetes Benchmark v1.11** as the primary reference for hardening configurations. However, core security policies are often compatible or cross-applicable to adjacent Benchmark versions.
+
+This section provides notes on the compatibility of key policies (rules) from v1.11 when applied to **v1.9, v1.10**, and **v1.12** versions.
+### 5.1. Compatibility with CIS Kubernetes v1.9 and v1.10
+
+The v1.9 and v1.10 Benchmark versions can share or effectively benefit from the following policies inherited from **v1.11** (primarily new rules introduced in v1.11):
+
+| **CIS v1.11 Rule** | **Component**  | **Description (Compatibility)**                                                                                                                                                   |
+| ------------------ | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1.2.30**         | kube-apiserver | Ensure that the `--service-account-extend-token-expiration` parameter is set to `false`. _This rule ensures recommended default behavior._                                        |
+| **4.2.14**         | Kubelet        | Ensure that the `--seccomp-default` parameter is set to `true`. **Seccomp** helps enhance security by limiting the syscalls a Pod can make, which is a critical security feature. |
+| **4.2.15**         | Kubelet        | Ensure that the `--IPAddressDeny` is set to any                                                                                                                                   |
+### 5.2. Compatibility with CIS Kubernetes v1.12
+
+The v1.12 Benchmark version can share or effectively benefit from the following policies inherited from **v1.11**:
+
+| **CIS v1.11 Rule** | **Component** | **Description (Compatibility)**                 |
+| ------------------ | ------------- | ----------------------------------------------- |
+| **4.2.15**         | Kubelet       | Ensure that the `--IPAddressDeny` is set to any |
