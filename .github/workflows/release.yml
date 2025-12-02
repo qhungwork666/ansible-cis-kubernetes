@@ -17,7 +17,7 @@ jobs:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v4
       # ==========================================================
-      # 🐳 Build and Push Docker Image
+      # 🐳 Setup and Metadata Docker
       # ==========================================================
 
       - name: 🛠️ Set up Docker Buildx
@@ -39,8 +39,45 @@ jobs:
             type=ref,event=tag
             type=raw,value=latest,enable=true,priority=200 
 
-      - name: 📦 Build and push Docker image
+      # ==========================================================
+      # 🐳 Build Image
+      # ==========================================================
+
+      - name: 📦 Build Docker image (Local Load for Scanning)
+        id: build
         uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false 
+          tags: ${{ steps.meta.outputs.tags }}
+          load: true
+
+      # ==========================================================
+      # 🛡️ TRIVY SCAN (High Severity +)
+      # ==========================================================
+
+      - name: 🛡️ Run Trivy Vulnerability Scan (High+)
+        uses: aquasecurity/trivy-action@master
+        id: trivy_scan
+        with:
+          image-ref: ${{ steps.meta.outputs.tags }}
+          severity: 'HIGH,CRITICAL'
+          # Format sarif for GitHub Security Alert
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: ⬆️ Upload Trivy Scan Results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'          
+
+      # ==========================================================
+      # 🐳 Push Image to GHCR
+      # ==========================================================
+
+      - name: ⬆️ Push Docker image to GHCR
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
