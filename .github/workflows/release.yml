@@ -40,17 +40,16 @@ jobs:
             type=raw,value=latest,enable=true,priority=200 
 
       # ==========================================================
-      # 🐳 Build Image
+      # 🐳 Build and Push Image
       # ==========================================================
 
-      - name: 📦 Build Docker image (Local Load for Scanning)
-        id: build
+      - name: 📦 Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          push: false 
+          context: . 
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
-          load: true
+          labels: ${{ steps.meta.outputs.labels }}
 
       # ==========================================================
       # 🛡️ TRIVY SCAN (High Severity +)
@@ -71,18 +70,6 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'          
-
-      # ==========================================================
-      # 🐳 Push Image to GHCR
-      # ==========================================================
-
-      - name: ⬆️ Push Docker image to GHCR
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
 
       - name: ✅ Report Success
         run: echo "Image successfully pushed to GHCR and Source Archive attached to Release."
