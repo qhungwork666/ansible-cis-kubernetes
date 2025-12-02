@@ -1,7 +1,7 @@
 name: 🚀 Build, Push & Attach Source
 
 on:
-  # Kích hoạt Workflow KHI có một Release mới được PUBLISH
+  # Action Workflow when new Release PUBLISH
   release:
     types: [published]
   workflow_dispatch:
@@ -10,14 +10,14 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # Cần 'write' để upload Release Asset
-      packages: write # Cần 'write' để push Image lên GHCR
+      contents: read
+      packages: write # with 'write' push Image  GHCR
       
     steps:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v4
       # ==========================================================
-      # 🐳 PHẦN GỐC: Build và Push Docker Image
+      # 🐳 Build and Push Docker Image
       # ==========================================================
 
       - name: 🛠️ Set up Docker Buildx
