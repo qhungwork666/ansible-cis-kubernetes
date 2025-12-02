@@ -62,11 +62,10 @@ jobs:
         id: trivy_scan
         with:
           image-ref: ${{ steps.meta.outputs.tags }}
-          severity: 'HIGH,CRITICAL'
           format: 'table'
           ignore-unfixed: true
-          scanners: vuln
-          vuln-type: os,library
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'          
           # Format sarif for GitHub Security Alert
           format: 'sarif'
           output: 'trivy-results.sarif'
