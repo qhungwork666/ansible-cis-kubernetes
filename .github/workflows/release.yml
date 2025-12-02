@@ -54,6 +54,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: 🔎 Check Environment Variables
+        run: env
+
       # ==========================================================
       # 🛡️ TRIVY SCAN (High Severity +)
       # ==========================================================
