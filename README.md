@@ -89,7 +89,7 @@ ansible-playbook -i inventory/staging.ini playbooks/apply-cis.yml --extra-vars "
 docker run --rm -it \
   -v ~/.ssh/id_rsa:/home/ansible/.ssh/id_rsa:ro \
   -v ./inventory:/tmp/inventory \
-  ansible-cis-k8s:v1.11.1 \
+  ghcr.io/qhungwork666/ansible-cis-kubernetes:1.0 \
   ansible-playbook \
     -i /tmp/inventory/host.ini \
     playbooks/apply-cis.yml \

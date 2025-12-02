@@ -87,7 +87,6 @@
 
 # 4.2.3 Ensure that the --client-ca-file argument        
 
-
 - name: 4.2.3 Ensure that the --client-ca-file argument 
   block:
     - name: Slurp Kubelet config file

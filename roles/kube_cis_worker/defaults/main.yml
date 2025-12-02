@@ -11,8 +11,8 @@ kubelet_ca_path_kubespray: "/etc/kubernetes/ssl/ca.crt"
 kubelet_config_yaml_path: "/var/lib/kubelet/config.yaml"
 kubelet_config_yaml_path_kubespray: "/etc/kubernetes/kubelet-config.yaml"
 
-kubelet_authentication_x509_clientCAFile: "/etc/kubernetes/pki/ca.crt"
-kubelet_authentication_x509_clientCAFile_kubespray: "/etc/kubernetes/ssl/ca.crt"
+kubelet_authentication_x509_client_ca_file: "/etc/kubernetes/pki/ca.crt"
+kubelet_authentication_x509_client_ca_file_kubespray: "/etc/kubernetes/ssl/ca.crt"
 
 kubelet_feature_gate_flag: "--feature-gates=RotateKubeletServerCertificate=true"
 
