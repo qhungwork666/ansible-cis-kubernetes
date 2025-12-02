@@ -62,7 +62,6 @@ jobs:
         id: trivy_scan
         with:
           image-ref: ${{ steps.meta.outputs.tags }}
-          format: 'table'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'          
