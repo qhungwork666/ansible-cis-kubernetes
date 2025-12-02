@@ -17,4 +17,3 @@
 # Scheduler flags & config checks (1.4.*)
 - name: Scheduler flags tasks
   include_tasks: scheduler_flags.yml
-

@@ -29,6 +29,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
 
     - name: 🟢 Task 4.2.1 completed status
@@ -69,6 +72,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.2 completed status
       ansible.builtin.debug:
@@ -111,6 +117,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.3 completed status
       ansible.builtin.debug:
@@ -148,6 +157,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.4 completed status
       ansible.builtin.debug:
@@ -185,6 +197,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.5 completed status
       ansible.builtin.debug:
@@ -222,6 +237,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.6 completed status
       ansible.builtin.debug:
@@ -278,6 +296,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.8 completed status
       ansible.builtin.debug:
@@ -317,6 +338,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.9 completed status
       ansible.builtin.debug:
@@ -354,6 +378,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.10 completed status
       ansible.builtin.debug:
@@ -417,6 +444,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.11+1 completed status
       ansible.builtin.debug:
@@ -457,6 +487,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.12 completed status
       ansible.builtin.debug:
@@ -496,6 +529,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.13 completed status
       ansible.builtin.debug:
@@ -534,6 +570,9 @@
       ansible.builtin.copy:
         content: "{{ after_config | to_nice_yaml(indent=2) }}"
         dest: "{{ kubelet_config_yaml_path }}"
+        owner: root
+        group: root
+        mode: '0600'
       register: config_change
     - name: 🟢 Task 4.2.14 completed status
       ansible.builtin.debug:

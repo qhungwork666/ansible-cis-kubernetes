@@ -97,7 +97,6 @@ kubelet_service_arg_kubespray: "/etc/kubernetes/kubelet.env"
 
 kubelet_config_path : "/etc/kubernetes/kubelet.conf"
 
-# kubelet_ca_path : "/etc/kubernetes/pki/ca.crt"
 kubelet_ca_path_kubespray : "/etc/kubernetes/ssl/ca.crt"
 
 kubelet_config_yaml_path: "/var/lib/kubelet/config.yaml"

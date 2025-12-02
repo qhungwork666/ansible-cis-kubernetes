@@ -20,4 +20,3 @@
     - name: 🔴 Task kubelet approver Status FAIL
       ansible.builtin.debug:
         msg: "🛑 FAIL: CIS kubelet approver. Failed setting on {{ inventory_hostname }}."
-

@@ -192,6 +192,9 @@
              }
            }, recursive=True) | to_nice_yaml(indent=2) }}
         dest: "{{ controller_manager_manifest }}"
+        owner: root
+        group: root
+        mode: '0600'        
       when: updated_container is defined
     - name: 🟢 Task 1.3.7 completed status
       ansible.builtin.debug:

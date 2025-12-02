@@ -31,6 +31,7 @@
   ignore_errors: true
 
 - name: Add PKI folder to kube-apiserver manifest
+  when: (pki_volume_check.rc != 0) and (kubespray | default(false) | bool)
   block:
     - name: Add pki volumeMounts to kube-apiserver manifest
       ansible.builtin.lineinfile:
@@ -45,8 +46,6 @@
         insertafter: '^\s*volumes:'
         line: "  - name: k8s-cert-pki\n    hostPath:\n      path: /etc/kubernetes/pki\n      type: DirectoryOrCreate"
       failed_when: false
-  when: (pki_volume_check.rc != 0) and (kubespray | default(false) | bool)
-
 
 - name: Check if CIS config volume exists
   ansible.builtin.command: "grep -E 'mountPath: /etc/kubernetes/cis-config' {{ apiserver_manifest }}"
@@ -55,6 +54,7 @@
 
 
 - name: Add CIS Config folder to kube-apiserver manifest
+  when: cis_config_volume_check.rc != 0
   block:
     - name: Add CIS config volumeMounts to kube-apiserver manifest
       ansible.builtin.lineinfile:
@@ -69,7 +69,6 @@
         insertafter: '^\s*volumes:'
         line: "  - name: cis-config\n    hostPath:\n      path: /etc/kubernetes/cis-config\n      type: DirectoryOrCreate"
       failed_when: false
-  when: cis_config_volume_check.rc != 0
 
 ### Add volumes and volumeMount in kube-controller-manager
 

@@ -71,6 +71,9 @@
              }
            }, recursive=True) | to_nice_yaml(indent=2) }}
         dest: "{{ scheduler_manifest }}"
+        owner: root
+        group: root
+        mode: '0600'         
       when: updated_container is defined
 
     - name: 🟢 Task 1.4.2 completed status
@@ -81,4 +84,3 @@
     - name: 🔴 Task 1.4.2 Status FAIL
       ansible.builtin.debug:
         msg: "🛑 FAIL: CIS 1.4.2 Failed setting on {{ inventory_hostname }}. Execution stopped."
-

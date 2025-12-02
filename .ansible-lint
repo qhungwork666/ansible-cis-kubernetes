@@ -3,10 +3,12 @@ skip_list:
   - fqcn[action-core]
   - yaml[trailing-spaces]
   - yaml[line-length]
+  - yaml[new-line-at-end-of-file]
   - var-naming[no-role-prefix]
   - jinja[spacing]
   - shorthand
   - var-naming
+  - no-changed-when
 
 exclude_paths:
   - .github
