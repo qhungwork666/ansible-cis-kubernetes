@@ -63,7 +63,7 @@ jobs:
         with:
           image-ref: ${{ steps.meta.outputs.tags }}
           severity: 'HIGH,CRITICAL'
-          format: table
+          format: 'table'
           ignore-unfixed: true
           scanners: vuln
           vuln-type: os,library
