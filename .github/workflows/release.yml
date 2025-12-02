@@ -40,7 +40,6 @@ jobs:
             type=semver,pattern={{version}} 
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-          tags-output: true
 
       # ==========================================================
       # 🐳 Build and Push Image
@@ -54,8 +53,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: 🔎 Check Environment Variables
-        run: env
+      # - name: 🔎 Check Environment Variables
+      #   run: env
 
       # ==========================================================
       # 🛡️ TRIVY SCAN (High Severity +)
@@ -65,7 +64,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         id: trivy_scan
         with:
-          image-ref: ${{ steps.meta.outputs.tags }}
+          image-ref: ghcr.io/qhungwork666/ansible-cis-kubernetes:${{ DOCKER_METADATA_OUTPUT_VERSION }}
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'          
@@ -74,7 +73,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: ⬆️ Upload Trivy Scan Results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'          
