@@ -1,0 +1,26 @@
+---
+skip_list:
+  - fqcn[action-core]
+  - yaml[trailing-spaces]
+  - jinja[spacing]
+  - shorthand
+  - var-naming
+
+defined_roles:
+  kube_cis_etcd:
+    vars_naming_prefix: kube_cis_etcd_
+  kube_cis_master:
+    vars_naming_prefix: kube_cis_master_
+  kube_cis_worker:
+    vars_naming_prefix: kube_cis_worker_
+
+
+max_line_length: 1000 
+
+exclude_paths:
+  - .github
+  - .ansible
+  - .cache
+  - .gitlab-ci.yml
+  - .gitlab-ci
+  - .git

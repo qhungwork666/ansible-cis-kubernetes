@@ -24,7 +24,7 @@ jobs:
       - name: 🔎 Run Ansible Lint
         uses: ansible/ansible-lint@main
         with:
-          args: ""
+          args: "--config-file .ansible-lint"
           setup_python: "true"
           working_directory: ""
           requirements_file: ""
