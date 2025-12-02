@@ -12,6 +12,7 @@ jobs:
     permissions:
       contents: read
       packages: write # with 'write' push Image  GHCR
+      security-events: write # upload sarif
       
     steps:
       - name: ⬇️ Checkout code
