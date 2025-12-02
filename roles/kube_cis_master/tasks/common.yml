@@ -78,6 +78,7 @@
   ignore_errors: true
 
 - name: Add PKI folder to kube-controller-manager manifest
+  when: (pki_volume_controller_check.rc != 0) and (kubespray | default(false) | bool)
   block:
     - name: Add pki volumeMounts to kube-controller-manager manifest
       ansible.builtin.lineinfile:
@@ -92,4 +93,3 @@
         insertafter: '^\s*volumes:'
         line: "  - name: k8s-cert-pki\n    hostPath:\n      path: /etc/kubernetes/pki\n      type: DirectoryOrCreate"
       failed_when: false
-  when: (pki_volume_controller_check.rc != 0) and (kubespray | default(false) | bool)
