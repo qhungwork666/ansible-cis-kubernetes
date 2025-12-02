@@ -87,7 +87,6 @@
 
 # 4.2.3 Ensure that the --client-ca-file argument        
 
-
 - name: 4.2.3 Ensure that the --client-ca-file argument 
   block:
     - name: Slurp Kubelet config file
@@ -121,6 +120,7 @@
         group: root
         mode: '0600'
       register: config_change
+
     - name: 🟢 Task 4.2.3 completed status
       ansible.builtin.debug:
         msg: "✅ CIS 4.2.3 Ensure that the --client-ca-file argument "
