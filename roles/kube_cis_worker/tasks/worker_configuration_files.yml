@@ -10,7 +10,6 @@
         mode: '0600'
         owner: root
         group: root
-      ignore_errors: yes
 
     - name: 🟢 Task 4.1.1-4.1.2 completed status
       ansible.builtin.debug:
@@ -119,3 +118,4 @@
     - name: 🔴 Task 4.1.9-4.1.10 Status FAIL
       ansible.builtin.debug:
         msg: "🛑 FAIL: CIS 4.1.9-4.1.10 Failed setting Kubelet config YAML permissions on {{ inventory_hostname }}. Execution stopped."  
+        

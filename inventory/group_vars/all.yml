@@ -2,9 +2,9 @@
 kubespray: false
 
 ### Variable for etcd  ###
-etcd_manifest: "{{ k8s_manifests_dir }}/etcd.yaml"
-etcd_cert_path: "/etc/kubernetes/pki/etcd"
-etcd_data_dir: "/var/lib/etcd"
+kube_cis_etcd_manifest: "{{ k8s_manifests_dir }}/etcd.yaml"
+kube_cis_etcd_cert_path: "/etc/kubernetes/pki/etcd"
+kube_cis_etcd_data_dir: "/var/lib/etcd"
 
 ### Variable for control-plane  ###
 # backup
@@ -103,8 +103,8 @@ kubelet_ca_path_kubespray : "/etc/kubernetes/ssl/ca.crt"
 kubelet_config_yaml_path: "/var/lib/kubelet/config.yaml"
 kubelet_config_yaml_path_kubespray: "/etc/kubernetes/kubelet-config.yaml"
 
-kubelet_authentication_x509_clientCAFile: "/etc/kubernetes/pki/ca.crt"
-kubelet_authentication_x509_clientCAFile_kubespray: "/etc/kubernetes/ssl/ca.crt"
+kubelet_authentication_x509_client_ca_file: "/etc/kubernetes/pki/ca.crt"
+kubelet_authentication_x509_client_ca_file_kubespray: "/etc/kubernetes/ssl/ca.crt"
 
 kubelet_feature_gate_flag: "--feature-gates=RotateKubeletServerCertificate=true"
 

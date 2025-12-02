@@ -240,7 +240,7 @@
         path: "{{ apiserver_manifest }}"
         regexp: '^\s*-\s*--disable-admission-plugins=.*$'
         state: absent
-        backrefs: no
+        backrefs: true
       when: has_disable_admission_plugins | default(false)
 
     - name: 🟢 Task 1.2.12-1.2.13 completed status
@@ -672,3 +672,4 @@
     - name: 🔴 Task 3.2.1-3.2.2 Status FAIL
       ansible.builtin.debug:
         msg: "🛑 FAIL: CIS 3.2.1-3.2.2 Failed setting audit policy on {{ inventory_hostname }}. Execution stopped."
+        

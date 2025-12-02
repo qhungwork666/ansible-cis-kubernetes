@@ -70,7 +70,7 @@
       ansible.builtin.find:
         paths: "{{ cni_file }}"
         patterns: "*.conflist"
-        recurse: no
+        recurse: true
       register: cni_files_conflist
 
     - name: Ensure CNI file 
@@ -144,7 +144,7 @@
       ansible.builtin.file:
         path: "{{ kubernetes_pki_dir }}"
         state: directory
-        recurse: yes
+        recurse: true
         owner: root
         group: root
 
@@ -166,7 +166,7 @@
       ansible.builtin.find:
         paths: "{{ kubernetes_pki_dir }}"
         patterns: "*.crt,*.key"
-        recurse: yes
+        recurse: true
       register: pki_files
 
     - name: Ensure PKI certificate files have mode 0644 (CIS 1.1.20)
@@ -189,3 +189,4 @@
     - name: 🔴 Task 1.1.20-1.1.21 Status FAIL
       ansible.builtin.debug:
         msg: "🛑 FAIL: CIS 1.1.20-1.1.21 Failed setting PKI file permissions on {{ inventory_hostname }}. Execution stopped."
+        

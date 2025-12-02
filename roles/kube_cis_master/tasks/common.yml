@@ -17,8 +17,9 @@
       ansible.builtin.copy:
         src: /etc/kubernetes/
         dest: "{{ backup_target_dir }}/kubernetes"
-        remote_src: yes
+        remote_src: true
         directory_mode: '0755'
+        mode: '0640'
         owner: root
         group: root
 
@@ -32,18 +33,18 @@
 - name: Add PKI folder to kube-apiserver manifest
   block:
     - name: Add pki volumeMounts to kube-apiserver manifest
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: "{{ apiserver_manifest }}"
         insertafter: '^\s*volumeMounts:'
         line: "    - name: k8s-cert-pki\n      mountPath: /etc/kubernetes/pki\n      readOnly: true"
-      ignore_errors: true
+      failed_when: false
 
     - name: Add pki volume to kube-apiserver 
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: "{{ apiserver_manifest }}"
         insertafter: '^\s*volumes:'
         line: "  - name: k8s-cert-pki\n    hostPath:\n      path: /etc/kubernetes/pki\n      type: DirectoryOrCreate"
-      ignore_errors: true
+      failed_when: false
   when: (pki_volume_check.rc != 0) and (kubespray | default(false) | bool)
 
 
@@ -56,18 +57,18 @@
 - name: Add CIS Config folder to kube-apiserver manifest
   block:
     - name: Add CIS config volumeMounts to kube-apiserver manifest
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: "{{ apiserver_manifest }}"
         insertafter: '^\s*volumeMounts:'
         line: "    - name: cis-config\n      mountPath: /etc/kubernetes/cis-config\n      readOnly: true"
-      ignore_errors: true
+      failed_when: false
 
     - name: Add CIS config volume to kube-apiserver 
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: "{{ apiserver_manifest }}"
         insertafter: '^\s*volumes:'
         line: "  - name: cis-config\n    hostPath:\n      path: /etc/kubernetes/cis-config\n      type: DirectoryOrCreate"
-      ignore_errors: true
+      failed_when: false
   when: cis_config_volume_check.rc != 0
 
 ### Add volumes and volumeMount in kube-controller-manager
@@ -80,16 +81,16 @@
 - name: Add PKI folder to kube-controller-manager manifest
   block:
     - name: Add pki volumeMounts to kube-controller-manager manifest
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: "{{ controller_manager_manifest }}"
         insertafter: '^\s*volumeMounts:'
         line: "    - name: k8s-cert-pki\n      mountPath: /etc/kubernetes/pki\n      readOnly: true"
-      ignore_errors: true
+      failed_when: false
 
     - name: Add pki volume to kube-controller-manager
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: "{{ controller_manager_manifest }}"
         insertafter: '^\s*volumes:'
         line: "  - name: k8s-cert-pki\n    hostPath:\n      path: /etc/kubernetes/pki\n      type: DirectoryOrCreate"
-      ignore_errors: true
+      failed_when: false
   when: (pki_volume_controller_check.rc != 0) and (kubespray | default(false) | bool)

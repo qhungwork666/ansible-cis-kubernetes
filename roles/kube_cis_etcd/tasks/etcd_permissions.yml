@@ -1,7 +1,7 @@
 - name: Check etcd manifest file status
   ansible.builtin.stat:
-    path: "{{ etcd_manifest }}"
-  register: etcd_manifest_stat
+    path: "{{ kube_cis_etcd_manifest }}"
+  register: kube_cis_etcd_manifest_stat
   ignore_errors: true
 
 # 1.1.7 Ensure etcd manifest perms are 600
@@ -11,12 +11,12 @@
   block:
     - name: Ensure etcd manifest 
       file:
-        path: "{{ etcd_manifest }}"
+        path: "{{ kube_cis_etcd_manifest }}"
         mode: '0600'
         owner: root
         group: root
       when: 
-        - etcd_manifest_stat.stat.exists
+        - kube_cis_etcd_manifest_stat.stat.exists
         - not (kubespray | default(false) | bool)  
 
     - name: 🟢 Task 1.1.7-1.1.8 completed status
@@ -41,12 +41,12 @@
       ansible.builtin.user:
         name: etcd
         group: etcd
-        system: yes 
+        system: true 
         shell: /sbin/nologin
         state: present
     - name: Ensure etcd manifest 
       file:
-        path: "{{ etcd_data_dir }}"
+        path: "{{ kube_cis_etcd_data_dir }}"
         mode: '0700'
         owner: etcd
         group: etcd

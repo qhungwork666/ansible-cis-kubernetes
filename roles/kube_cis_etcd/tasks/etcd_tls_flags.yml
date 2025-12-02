@@ -3,18 +3,18 @@
   block:
     - name: Set --cert-file argument (Default)
       ansible.builtin.lineinfile:
-        path: "{{ etcd_manifest }}"
+        path: "{{ kube_cis_etcd_manifest }}"
         state: present
         regexp: '^\s*-\s*--cert-file=.*$'
-        line: '    - --cert-file={{ etcd_cert_path }}/server.crt'
+        line: '    - --cert-file={{ kube_cis_etcd_cert_path }}/server.crt'
         insertafter: '^\s+- etcd$'
 
     - name: Set --key-file argument (Default)
       ansible.builtin.lineinfile:
-        path: "{{ etcd_manifest }}"
+        path: "{{ kube_cis_etcd_manifest }}"
         state: present
         regexp: '^\s*-\s*--key-file=.*$'
-        line: '    - --key-file={{ etcd_cert_path }}/server.key'
+        line: '    - --key-file={{ kube_cis_etcd_cert_path }}/server.key'
         insertafter: '^\s+- etcd$'
 
     - name: 🟢 Task 2.1-2.2 completed status
@@ -32,7 +32,7 @@
   block:
     - name: Ensure that the --client-cert-auth
       ansible.builtin.lineinfile:
-        path: "{{ etcd_manifest }}"
+        path: "{{ kube_cis_etcd_manifest }}"
         state: present
         backrefs: true
         regexp: '^\s*-\s+--client-cert-auth=.*$'
@@ -54,7 +54,7 @@
   block:
     - name: Ensure that the --auto-tls
       ansible.builtin.lineinfile:
-        path: "{{ etcd_manifest }}"
+        path: "{{ kube_cis_etcd_manifest }}"
         state: present
         backrefs: true
         regexp: '^\s*-\s+--auto-tls=.*$'
@@ -77,19 +77,19 @@
     # --- Task 1: --peer-cert-file (DEFAULT) ---
     - name: Set --peer-cert-file argument (Default)
       ansible.builtin.lineinfile:
-        path: "{{ etcd_manifest }}"
+        path: "{{ kube_cis_etcd_manifest }}"
         state: present
         regexp: '^\s*-\s*--peer-cert-file=.*$'
-        line: '    - --peer-cert-file={{ etcd_cert_path }}/peer.crt'
+        line: '    - --peer-cert-file={{ kube_cis_etcd_cert_path }}/peer.crt'
         insertafter: '^\s+- etcd$'
 
     # --- Task 2: --peer-key-file (DEFAULT) ---
     - name: Set --peer-key-file argument (Default)
       ansible.builtin.lineinfile:
-        path: "{{ etcd_manifest }}"
+        path: "{{ kube_cis_etcd_manifest }}"
         state: present
         regexp: '^\s*-\s*--peer-key-file=.*$'
-        line: '    - --peer-key-file={{ etcd_cert_path }}/peer.key'
+        line: '    - --peer-key-file={{ kube_cis_etcd_cert_path }}/peer.key'
         insertafter: '^\s+- etcd$'
 
     - name: 🟢 Task 2.5 completed status
@@ -107,7 +107,7 @@
   block:
     - name: Ensure that the --peer-client-cert-auth 
       ansible.builtin.lineinfile:
-        path: "{{ etcd_manifest }}"
+        path: "{{ kube_cis_etcd_manifest }}"
         state: present
         backrefs: true
         regexp: '^\s*-\s+--peer-client-cert-auth=.*$'
@@ -130,7 +130,7 @@
   block:
     - name: Ensure that the --peer-auto-tlsh (2.7)
       ansible.builtin.lineinfile:
-        path: "{{ etcd_manifest }}"
+        path: "{{ kube_cis_etcd_manifest }}"
         state: present
         backrefs: true
         regexp: '^\s*-\s+--peer-auto-tls=.*$'
@@ -152,11 +152,11 @@
   block:
     - name: Ensure that a unique Certificate Authority (2.8)
       ansible.builtin.lineinfile:
-        path: "{{ etcd_manifest }}"
+        path: "{{ kube_cis_etcd_manifest }}"
         state: present
         backrefs: true
         regexp: '^\s*-\s*--trusted-ca-file=.*$'
-        line: '    - --trusted-ca-file={{ etcd_cert_path }}/ca.crt'
+        line: '    - --trusted-ca-file={{ kube_cis_etcd_cert_path }}/ca.crt'
         insertafter: '^\s+- etcd$'
 
     - name: 🟢 Task 2.8 completed status
@@ -167,3 +167,4 @@
     - name: 🔴 Task 2.8 Status FAIL
       ansible.builtin.debug:
         msg: "🛑 FAIL: CIS 2.8 Failed setting --trusted-ca-file on {{ inventory_hostname }}. Execution stopped."
+        

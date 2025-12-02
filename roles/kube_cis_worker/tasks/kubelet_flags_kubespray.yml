@@ -99,7 +99,7 @@
                 {
                   'authentication': {
                     'x509': {
-                      'clientCAFile': kubelet_authentication_x509_clientCAFile_kubespray
+                      'clientCAFile': kubelet_authentication_x509_client_ca_file_kubespray
                     }
                   }
                 }, 

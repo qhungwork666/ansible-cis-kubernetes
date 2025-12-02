@@ -118,3 +118,4 @@
     - name: 🔴 Task 4.1.9-4.1.10 Status FAIL
       ansible.builtin.debug:
         msg: "🛑 FAIL: CIS 4.1.9-4.1.10 Failed setting Kubelet config YAML permissions on {{ inventory_hostname }} (Kubespray). Execution stopped."
+        

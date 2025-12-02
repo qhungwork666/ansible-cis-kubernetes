@@ -30,3 +30,4 @@
     daemon_reload: true
     name: kubelet
     state: restarted    
+    
