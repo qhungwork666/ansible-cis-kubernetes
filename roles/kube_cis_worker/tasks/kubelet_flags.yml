@@ -418,6 +418,8 @@
         msg: "🛑 FAIL: CIS 4.2.11 Failed setting on {{ inventory_hostname }}. Execution stopped."
 
 - name: 4.2.11+1 When use Kubelet serving cert approver (Option)
+  when: 
+    - kubelet_approver | default(false) | bool
   block:
     - name: Slurp Kubelet config file
       ansible.builtin.slurp:
@@ -456,9 +458,6 @@
     - name: 🔴 Task 4.2.11+1 Status FAIL
       ansible.builtin.debug:
         msg: "🛑 FAIL: CIS 4.2.11+1 Failed setting on {{ inventory_hostname }}. Execution stopped."
-
-  when: 
-    - kubelet_approver | default(false) | bool
 
 # 4.2.12 Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers
 
