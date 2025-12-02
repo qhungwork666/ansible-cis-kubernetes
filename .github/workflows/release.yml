@@ -36,8 +36,10 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }} 
           tags: |
-            type=ref,event=tag
-            type=raw,value=latest,enable=true,priority=200 
+            type=semver,pattern={{version}} 
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+          tags-output: true
 
       # ==========================================================
       # 🐳 Build and Push Image
@@ -59,7 +61,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         id: trivy_scan
         with:
-          image-ref: ${{ steps.meta.outputs.tags }}
+          image-ref: ${{ steps.meta.outputs.version }}
           severity: 'HIGH,CRITICAL'
           # Format sarif for GitHub Security Alert
           format: 'sarif'
