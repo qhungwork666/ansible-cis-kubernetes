@@ -61,7 +61,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         id: trivy_scan
         with:
-          image-ref: ${{ steps.meta.outputs.version }}
+          image-ref: ${{ steps.meta.outputs.tags }}
           severity: 'HIGH,CRITICAL'
           # Format sarif for GitHub Security Alert
           format: 'sarif'
