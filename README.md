@@ -173,8 +173,8 @@ The v1.9 and v1.10 Benchmark versions can share or effectively benefit from the 
 
 | **CIS v1.11 Rule** | **Component**  | **Description (Compatibility)**                                                                                                                                                   |
 | ------------------ | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1.2.30**         | kube-apiserver | Ensure that the `--service-account-extend-token-expiration` parameter is set to `false`. _This rule ensures recommended default behavior._                                        |
-| **4.2.14**         | Kubelet        | Ensure that the `--seccomp-default` parameter is set to `true`. **Seccomp** helps enhance security by limiting the syscalls a Pod can make, which is a critical security feature. |
+| **1.2.30**         | kube-apiserver | Ensure that the `--service-account-extend-token-expiration` parameter is set to `false`.                                         |
+| **4.2.14**         | Kubelet        | Ensure that the `--seccomp-default` parameter is set to `true`.  |
 | **4.2.15**         | Kubelet        | Ensure that the `--IPAddressDeny` is set to any                                                                                                                                   |
 ### 5.2. Compatibility with CIS Kubernetes v1.12
 
