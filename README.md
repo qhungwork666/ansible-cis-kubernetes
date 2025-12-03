@@ -132,11 +132,11 @@ It is critical to ensure that this node is fully functional and has a valid `kub
 
 **Required Variables for Approver Integration:**
 
-| **Variable**               | **Value** | **Description**                                                                                                                  |
+| **Variable**               | **Default Value** | **Description**                                                                                                                  |
 | -------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `kubelet_approver`         | `true`    | Enables the deployment and configuration of the `kubelet-serving-cert-approver` controller.                                      |
 | `kubelet_approver_version` | `'0.9.3'` | Specifies the desired version of the controller image to deploy.                                                                 |
-| `registry_local`           | `null`    | Ensures the image is pulled from its official public registry (e.g., Docker Hub or Quay) unless an internal mirror is specified. |
+| `registry_local`           | `null`    | Ensures the image is pulled from its official public registry (e.g., Docker Hub or Quay) unless an internal registry is specified. |
 ### 4.4 Encrypting Confidential Data at Rest
 
 To comply with the CIS requirement for securing sensitive data stored in **etcd**, this Playbook implements **Secret Encryption at Rest** using the **AES-CBC provider**.
